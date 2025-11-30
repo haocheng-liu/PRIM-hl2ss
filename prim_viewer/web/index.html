@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PRIM Dataset Management</title>
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.js?v=9"></script>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div>
+        <h1>PRIM Dataset Management</h1>
+        <p id="dataset-path" class="muted"></p>
+      </div>
+      <div class="actions">
+        <button id="rescan-btn" class="ghost">Rescan</button>
+        <span id="mesh-count" class="pill">0</span>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel list-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Records</h2>
+            <p class="muted">With available Mesh</p>
+          </div>
+        </div>
+        <div id="mesh-grid" class="grid"></div>
+      </section>
+
+      <section class="panel viewer-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Preview</h2>
+            <p id="selected-name" class="muted">Select a mesh to inspect</p>
+          </div>
+          <div id="meta" class="muted tiny"></div>
+        </div>
+        <div id="viewer-container">
+          <div id="viewer"></div>
+          <div id="status" class="status hidden"></div>
+        </div>
+        <div class="panel-header secondary">
+          <div>
+            <h3>RIRs</h3>
+            <p class="muted tiny">Visualize and listening</p>
+          </div>
+        </div>
+        <div id="rir-grid" class="rir-grid"></div>
+        <div class="panel-header secondary">
+          <div>
+            <h3>Related captures</h3>
+            <p class="muted tiny">Image / depth</p>
+          </div>
+        </div>
+        <div id="preview-grid" class="preview-grid"></div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
