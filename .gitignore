@@ -42,6 +42,7 @@ extensions/client_labview/hl2ss_labview/opencv_world480.dll
 hl2ss-lk/viewer/dataset
 hl2ss-lk/viewer/LKTimer.py
 
+dataset/
 prim_viewer/cache/
 prim_viewer/__pycache__/
 python-3.11.0/

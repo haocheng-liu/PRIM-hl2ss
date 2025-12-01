@@ -1,7 +1,7 @@
 @echo off
 setlocal
 
-set "DEFAULT_HOST=192.168.1.36"
+set "DEFAULT_HOST=192.168.50.216"
 set "PYTHON_EXE=%~dp0python-3.11.0\python.exe"
 set "SCRIPT_DIR=%~dp0hl2ss-lk\viewer"
 set "SCRIPT_NAME=lk_multimodal_dataset_capture.py"
@@ -22,7 +22,7 @@ echo.
 
 cd /d "%SCRIPT_DIR%"
 
-"%PYTHON_EXE%" "%SCRIPT_NAME%" --roomname "Home" --nrec 2 --host %HOST_IP%
+"%PYTHON_EXE%" "%SCRIPT_NAME%" --roomname "%ROOM_NAME%" --nrec 6 --host %HOST_IP%
 
 echo.
 echo DONE.
