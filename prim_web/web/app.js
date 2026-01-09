@@ -574,11 +574,11 @@ function fftRadix2(re, im) {
 }
 
 function spectrogramColor(t) {
+  // crude viridis-like ramp
   const x = Math.min(Math.max(t, 0), 1);
-  // warm-cool ramp
-  const r = Math.floor(255 * x);
-  const g = Math.floor(200 * Math.sqrt(x));
-  const b = Math.floor(80 + 140 * (1 - x));
+  const r = Math.floor(255 * (0.267 + x * (0.718 - 0.267)));
+  const g = Math.floor(255 * (0.004 + x * (0.828 - 0.004)));
+  const b = Math.floor(255 * (0.329 + x * (0.299 - 0.329)));
   return [r, g, b];
 }
 
