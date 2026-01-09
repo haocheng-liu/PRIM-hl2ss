@@ -133,6 +133,11 @@ button.ghost {
   margin-bottom: 6px;
 }
 
+.rir-header {
+  justify-content: flex-start;
+  gap: 10px;
+}
+
 .grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -140,6 +145,104 @@ button.ghost {
   max-height: 76vh;
   overflow-y: auto;
   padding-right: 4px;
+}
+
+.tree {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 76vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.tree-node {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #0c1424;
+  padding: 8px 10px;
+}
+
+.tree-node summary {
+  list-style: none;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tree-node summary::-webkit-details-marker {
+  display: none;
+}
+
+.tree-node summary::before {
+  content: '>';
+  display: inline-block;
+  transform: rotate(90deg);
+  transition: transform 0.15s ease;
+  color: var(--muted);
+}
+
+.tree-node:not([open]) > summary::before {
+  transform: rotate(0deg);
+}
+
+.tree-children {
+  margin-left: 6px;
+  padding-left: 12px;
+  border-left: 1px dashed var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.tree-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #0a0f1f;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.12s ease;
+}
+
+.tree-row:hover {
+  border-color: var(--accent);
+  transform: translateX(2px);
+}
+
+.tree-row.active {
+  border-color: var(--accent);
+  box-shadow: 0 6px 18px rgba(56, 189, 248, 0.2);
+}
+
+.tree-row .label {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.tree-row.missing .label {
+  color: #f87171;
+}
+
+.badge {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #1f2937;
+  color: var(--muted);
+  font-size: 12px;
+  border: 1px solid var(--border);
+}
+
+.badge-missing {
+  background: rgba(239, 68, 68, 0.08);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.4);
 }
 
 .card {
@@ -302,11 +405,23 @@ button.ghost {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
 }
 
+.lightbox canvas {
+  max-width: 90vw;
+  max-height: 90vh;
+  background: #0a0f1f;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
 @media (max-width: 1000px) {
   .layout {
     grid-template-columns: 1fr;
   }
   .grid {
+    max-height: none;
+  }
+  .tree {
     max-height: none;
   }
   #viewer-container {

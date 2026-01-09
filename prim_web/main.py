@@ -13,22 +13,18 @@ Features
 from __future__ import annotations
 
 import argparse
-import functools
 import hashlib
-import http.server
 import json
 import mimetypes
 import numpy as np
-import os
-import shutil
-import socketserver
 import threading
 import time
-import urllib.parse
 import webbrowser
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+
+from flask import Flask, Response, abort, jsonify, send_file
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -113,10 +109,14 @@ class AppState:
         self.path_map: Dict[str, Path] = {}
         self.preview_map: Dict[str, Path] = {}
         self.rir_map: Dict[str, Path] = {}
+        self.tree: List[Dict[str, object]] = []
         self.lock = threading.Lock()
 
 
 STATE: Optional[AppState] = None
+
+# Flask app, manual static
+app = Flask(__name__)
 
 
 def load_cached_dataset() -> Optional[Path]:
@@ -155,7 +155,7 @@ def choose_dataset_root(args_dataset: Optional[str], allow_dialog: bool = True) 
         root.destroy()
         if selected:
             return Path(selected)
-    except Exception as exc:  # pragma: no cover - Tk not always available
+    except Exception as exc:  # no cover, tk maybe missing
         print(f"[mesh-viewer] Folder dialog unavailable ({exc}); using {candidate}")
 
     return candidate
@@ -166,7 +166,7 @@ def _collect_previews(mesh_path: Path, dataset_root: Path) -> Tuple[List[Preview
     preview_assets: List[PreviewAsset] = []
     preview_map: Dict[str, Path] = {}
 
-    # Typical layout: .../<session>/<source>/mesh/mesh.obj -> sibling image/ contains PNGs.
+    # layout: .../mesh/mesh.obj -> sibling image/
     candidate = mesh_path.parent.parent / "image"
     if not candidate.exists():
         candidate = mesh_path.parent / "image"
@@ -220,11 +220,7 @@ def _collect_rirs(mesh_path: Path, dataset_root: Path) -> Tuple[List[RIRAsset], 
 
 
 def _load_markers(mesh_path: Path) -> Tuple[Optional[List[float]], Optional[List[float]]]:
-    """Load mic/source positions from session-level source_pov/position/origin.npy.
-
-    - mic: first row
-    - source: last row
-    """
+    """Load mic/source; source from session source_pov, mic from local time."""
 
     def _session_root(path: Path) -> Optional[Path]:
         for parent in path.parents:
@@ -232,74 +228,143 @@ def _load_markers(mesh_path: Path) -> Tuple[Optional[List[float]], Optional[List
                 return parent
         return None
 
+    def _load_origin(file: Path) -> Optional[np.ndarray]:
+        if not file.exists():
+            return None
+        try:
+            arr = np.load(file)
+        except Exception:
+            return None
+        if arr.ndim != 2 or arr.shape[1] < 3 or arr.shape[0] == 0:
+            return None
+        return arr
+
     session_dir = _session_root(mesh_path)
-    candidate = None
+
+    # source: fixed per session from source_pov
+    src = None
     if session_dir:
-        candidate = session_dir / "source_pov" / "position"
-    if not candidate or not candidate.exists():
-        # Fallback to local position (old behavior)
-        candidate = mesh_path.parent.parent / "position"
-        if not candidate.exists():
-            candidate = mesh_path.parent / "position"
+        src_arr = _load_origin(session_dir / "source_pov" / "position" / "origin.npy")
+        if src_arr is not None:
+            src = src_arr[0, :3].astype(float).tolist()
 
-    origin_file = candidate / "origin.npy" if candidate else None
-    if not origin_file or not origin_file.exists():
-        return None, None
+    # mic: prefer local time position
+    mic = None
+    mic_dir = mesh_path.parent.parent / "position"
+    if not mic_dir.exists():
+        mic_dir = mesh_path.parent / "position"
+    mic_arr = _load_origin(mic_dir / "origin.npy") if mic_dir.exists() else None
+    if mic_arr is not None:
+        mic = mic_arr[0, :3].astype(float).tolist()
 
-    try:
-        arr = np.load(origin_file)
-    except Exception:
-        return None, None
-
-    if arr.ndim != 2 or arr.shape[1] < 3 or arr.shape[0] == 0:
-        return None, None
-
-    mic = arr[0, :3].astype(float).tolist()
-    src = arr[-1, :3].astype(float).tolist() if arr.shape[0] > 1 else None
     return mic, src
 
 
-def build_mesh_index(dataset_root: Path) -> Tuple[List[MeshEntry], Dict[str, Path], Dict[str, Path], Dict[str, Path]]:
-    """Scan dataset_root for mesh.obj files and build index + id->path map."""
+def _build_mesh_entry(mesh_path: Path, dataset_root: Path) -> Tuple[MeshEntry, Dict[str, Path], Dict[str, Path]]:
+    """Create a MeshEntry from a mesh path plus its nearby assets."""
+    rel_path = mesh_path.relative_to(dataset_root)
+    parts = list(rel_path.parts[:-1])  # drop file
+    if parts and parts[-1] == "mesh":
+        parts = parts[:-1]
+    display_name = " / ".join(parts) or mesh_path.name
+    entry_id = hashlib.sha1(str(mesh_path).encode("utf-8")).hexdigest()[:12]
+    stat = mesh_path.stat()
+    previews, local_preview_map = _collect_previews(mesh_path, dataset_root)
+    rirs, local_rir_map = _collect_rirs(mesh_path, dataset_root)
+    mic_pos, src_pos = _load_markers(mesh_path)
+
+    entry = MeshEntry(
+        id=entry_id,
+        name=display_name,
+        rel_path=str(rel_path),
+        size=stat.st_size,
+        mtime=stat.st_mtime,
+        previews=previews,
+        rirs=rirs,
+        mic_position=mic_pos,
+        source_position=src_pos,
+    )
+    return entry, local_preview_map, local_rir_map
+
+
+def build_mesh_index(
+    dataset_root: Path,
+) -> Tuple[List[MeshEntry], Dict[str, Path], Dict[str, Path], Dict[str, Path], List[Dict[str, object]]]:
+    """Scan dataset_root for mesh.obj files and build index + id->path map + folder tree."""
     entries: List[MeshEntry] = []
     path_map: Dict[str, Path] = {}
     preview_map: Dict[str, Path] = {}
     rir_map: Dict[str, Path] = {}
+    tree: List[Dict[str, object]] = []
+    time_to_mesh: Dict[str, str] = {}
 
     if not dataset_root.exists():
-        return entries, path_map
+        return entries, path_map, preview_map, rir_map, tree
 
+    # pass1: collect meshes/assets
     for obj_path in sorted(dataset_root.rglob("mesh.obj")):
         if not obj_path.is_file():
             continue
-        rel_path = obj_path.relative_to(dataset_root)
-        display_name = " / ".join(rel_path.parts[:-1]) or obj_path.name
-        entry_id = hashlib.sha1(str(obj_path).encode("utf-8")).hexdigest()[:12]
-        stat = obj_path.stat()
-        previews, local_preview_map = _collect_previews(obj_path, dataset_root)
-        rirs, local_rir_map = _collect_rirs(obj_path, dataset_root)
-        mic_pos, src_pos = _load_markers(obj_path)
-
-        entry = MeshEntry(
-            id=entry_id,
-            name=display_name,
-            rel_path=str(rel_path),
-            size=stat.st_size,
-            mtime=stat.st_mtime,
-            previews=previews,
-            rirs=rirs,
-            mic_position=mic_pos,
-            source_position=src_pos,
-        )
+        entry, local_preview_map, local_rir_map = _build_mesh_entry(obj_path, dataset_root)
         entries.append(entry)
-        path_map[entry_id] = obj_path
+        path_map[entry.id] = obj_path
         preview_map.update(local_preview_map)
         rir_map.update(local_rir_map)
 
-    return entries, path_map, preview_map, rir_map
+        time_dir = obj_path.parent if obj_path.parent.name != "mesh" else obj_path.parent.parent
+        rel_time = str(time_dir.relative_to(dataset_root)).replace("\\", "/")
+        time_to_mesh[rel_time] = entry.id
+
+    # pass2: build tree incl missing mesh
+    for room_dir in sorted(dataset_root.iterdir()):
+        if not room_dir.is_dir():
+            continue
+        room_node = {
+            "name": room_dir.name,
+            "rel_path": str(room_dir.relative_to(dataset_root)).replace("\\", "/"),
+            "sessions": [],
+        }
+
+        for session_dir in sorted(p for p in room_dir.iterdir() if p.is_dir()):
+            session_node = {
+                "name": session_dir.name,
+                "rel_path": str(session_dir.relative_to(dataset_root)).replace("\\", "/"),
+                "times": [],
+            }
+            time_dirs = [
+                p
+                for p in session_dir.iterdir()
+                if p.is_dir()
+                and (
+                    p.name == "source_pov"
+                    or p.name.startswith("time_")
+                    or (p / "mesh" / "mesh.obj").exists()
+                    or (p / "mesh.obj").exists()
+                )
+            ]
+            time_dirs = sorted(time_dirs, key=lambda p: (0 if p.name == "source_pov" else 1, p.name))
+            for time_dir in time_dirs:
+                rel_time = str(time_dir.relative_to(dataset_root)).replace("\\", "/")
+                mesh_id = time_to_mesh.get(rel_time)
+                session_node["times"].append(
+                    {
+                        "name": time_dir.name,
+                        "rel_path": rel_time,
+                        "mesh_id": mesh_id,
+                        "has_mesh": mesh_id is not None,
+                    }
+                )
+
+            if session_node["times"]:
+                room_node["sessions"].append(session_node)
+
+        if room_node["sessions"]:
+            tree.append(room_node)
+
+    return entries, path_map, preview_map, rir_map, tree
 
 
-def write_index_cache(dataset_root: Path, entries: List[MeshEntry]) -> None:
+def write_index_cache(dataset_root: Path, entries: List[MeshEntry], tree: List[Dict[str, object]]) -> None:
     """Persist the latest scan for quick inspection or reuse."""
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
     payload = {
@@ -307,6 +372,7 @@ def write_index_cache(dataset_root: Path, entries: List[MeshEntry]) -> None:
         "generated_at": time.time(),
         "mesh_count": len(entries),
         "entries": [entry.as_dict() for entry in entries],
+        "tree": tree,
     }
     CACHE_INDEX_FILE.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
@@ -316,15 +382,16 @@ def refresh_index() -> List[MeshEntry]:
     global STATE
     assert STATE is not None
 
-    entries, path_map, preview_map, rir_map = build_mesh_index(STATE.dataset_root)
+    entries, path_map, preview_map, rir_map, tree = build_mesh_index(STATE.dataset_root)
 
     with STATE.lock:
         STATE.entries = entries
         STATE.path_map = path_map
         STATE.preview_map = preview_map
         STATE.rir_map = rir_map
+        STATE.tree = tree
 
-    write_index_cache(STATE.dataset_root, entries)
+    write_index_cache(STATE.dataset_root, entries, tree)
     return entries
 
 
@@ -334,136 +401,82 @@ def serialize_entries() -> List[Dict[str, object]]:
         return [entry.as_dict() for entry in STATE.entries]
 
 
-class MeshViewerHandler(http.server.SimpleHTTPRequestHandler):
-    """HTTP handler that serves the web UI plus mesh data APIs."""
+def snapshot_tree() -> List[Dict[str, object]]:
+    """Return a JSON-safe copy of the folder tree."""
+    assert STATE is not None
+    with STATE.lock:
+        return json.loads(json.dumps(STATE.tree))
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=str(WEB_DIR), **kwargs)
 
-    def log_message(self, format: str, *args) -> None:  # noqa: A003
-        # Quieter logging; uncomment for debugging.
-        # print("[mesh-viewer]", format % args)
-        return
+def _serve_path(target: Optional[Path], not_found_msg: str) -> Response:
+    if not target or not target.exists():
+        abort(404, description=not_found_msg)
+    mime = mimetypes.guess_type(str(target))[0] or "application/octet-stream"
+    return send_file(target, mimetype=mime, conditional=True)
 
-    def _send_json(self, payload: Dict[str, object], status: int = 200) -> None:
-        data = json.dumps(payload).encode("utf-8")
-        self.send_response(status)
-        self.send_header("Content-Type", "application/json")
-        self.send_header("Content-Length", str(len(data)))
-        self.end_headers()
-        self.wfile.write(data)
 
-    def _send_mesh_file(self, mesh_id: str) -> None:
-        assert STATE is not None
-        with STATE.lock:
-            target = STATE.path_map.get(mesh_id)
+@app.route("/api/list", methods=["GET"])
+def api_list() -> Response:
+    payload = {
+        "dataset_root": str(STATE.dataset_root if STATE else ""),
+        "mesh_count": len(STATE.entries) if STATE else 0,
+        "entries": serialize_entries(),
+        "tree": snapshot_tree(),
+        "cache_dir": str(CACHE_DIR),
+    }
+    return jsonify(payload)
 
-        if not target or not target.exists():
-            self.send_error(404, "Mesh not found")
-            return
 
-        self.send_response(200)
-        self.send_header("Content-Type", "text/plain")
-        self.send_header("Content-Length", str(target.stat().st_size))
-        self.end_headers()
+@app.route("/api/rescan", methods=["POST"])
+def api_rescan() -> Response:
+    entries = [entry.as_dict() for entry in refresh_index()]
+    payload = {
+        "dataset_root": str(STATE.dataset_root if STATE else ""),
+        "mesh_count": len(entries),
+        "entries": entries,
+        "tree": snapshot_tree(),
+        "cache_dir": str(CACHE_DIR),
+    }
+    return jsonify(payload)
 
-        try:
-            with target.open("rb") as stream:
-                shutil.copyfileobj(stream, self.wfile)
-        except (ConnectionResetError, BrokenPipeError):
-            return
 
-    def _send_preview_file(self, preview_id: str) -> None:
-        assert STATE is not None
-        with STATE.lock:
-            target = STATE.preview_map.get(preview_id)
+@app.route("/mesh/<mesh_id>", methods=["GET"])
+def mesh(mesh_id: str) -> Response:
+    assert STATE is not None
+    with STATE.lock:
+        target = STATE.path_map.get(mesh_id)
+    return _serve_path(target, "Mesh not found")
 
-        if not target or not target.exists():
-            self.send_error(404, "Preview not found")
-            return
 
-        self.send_response(200)
-        self.send_header("Content-Type", mimetypes.guess_type(str(target))[0] or "application/octet-stream")
-        self.send_header("Content-Length", str(target.stat().st_size))
-        self.end_headers()
+@app.route("/preview/<preview_id>", methods=["GET"])
+def preview(preview_id: str) -> Response:
+    assert STATE is not None
+    with STATE.lock:
+        target = STATE.preview_map.get(preview_id)
+    return _serve_path(target, "Preview not found")
 
-        try:
-            with target.open("rb") as stream:
-                shutil.copyfileobj(stream, self.wfile)
-        except (ConnectionResetError, BrokenPipeError):
-            return
 
-    def _send_rir_file(self, rir_id: str) -> None:
-        assert STATE is not None
-        with STATE.lock:
-            target = STATE.rir_map.get(rir_id)
+@app.route("/rir/<rir_id>", methods=["GET"])
+def rir(rir_id: str) -> Response:
+    assert STATE is not None
+    with STATE.lock:
+        target = STATE.rir_map.get(rir_id)
+    return _serve_path(target, "RIR not found")
 
-        if not target or not target.exists():
-            self.send_error(404, "RIR not found")
-            return
 
-        self.send_response(200)
-        self.send_header("Content-Type", mimetypes.guess_type(str(target))[0] or "application/octet-stream")
-        self.send_header("Content-Length", str(target.stat().st_size))
-        self.end_headers()
-
-        try:
-            with target.open("rb") as stream:
-                shutil.copyfileobj(stream, self.wfile)
-        except (ConnectionResetError, BrokenPipeError):
-            # Client disconnected mid-transfer; safe to ignore.
-            return
-
-    def do_GET(self) -> None:  # noqa: N802
-        parsed = urllib.parse.urlparse(self.path)
-        if parsed.path == "/api/list":
-            payload = {
-                "dataset_root": str(STATE.dataset_root if STATE else ""),
-                "mesh_count": len(STATE.entries) if STATE else 0,
-                "entries": serialize_entries(),
-                "cache_dir": str(CACHE_DIR),
-            }
-            self._send_json(payload)
-            return
-
-        if parsed.path.startswith("/mesh/"):
-            mesh_id = parsed.path.split("/mesh/", 1)[1]
-            self._send_mesh_file(mesh_id)
-            return
-
-        if parsed.path.startswith("/preview/"):
-            preview_id = parsed.path.split("/preview/", 1)[1]
-            self._send_preview_file(preview_id)
-            return
-
-        if parsed.path.startswith("/rir/"):
-            rir_id = parsed.path.split("/rir/", 1)[1]
-            self._send_rir_file(rir_id)
-            return
-
-        super().do_GET()
-
-    def do_POST(self) -> None:  # noqa: N802
-        parsed = urllib.parse.urlparse(self.path)
-        if parsed.path == "/api/rescan":
-            entries = [entry.as_dict() for entry in refresh_index()]
-            payload = {
-                "dataset_root": str(STATE.dataset_root if STATE else ""),
-                "mesh_count": len(entries),
-                "entries": entries,
-                "cache_dir": str(CACHE_DIR),
-            }
-            self._send_json(payload)
-            return
-
-        self.send_error(404, "Not found")
-
-    def guess_type(self, path: str) -> str:
-        # Force JS to use an ES-module friendly MIME type regardless of OS defaults.
-        ctype, _ = mimetypes.guess_type(path)
-        if ctype == "text/plain" and path.endswith(".js"):
-            return "application/javascript"
-        return ctype or "application/octet-stream"
+@app.route("/", defaults={"asset_path": "index.html"})
+@app.route("/<path:asset_path>")
+def frontend(asset_path: str) -> Response:
+    # serve web dir, block traversal
+    target = (WEB_DIR / asset_path).resolve()
+    try:
+        target.relative_to(WEB_DIR)
+    except ValueError:
+        abort(404)
+    if not target.exists() or not target.is_file():
+        abort(404)
+    mime = mimetypes.guess_type(str(target))[0] or "application/octet-stream"
+    return send_file(target, mimetype=mime, conditional=True)
 
 
 def parse_args() -> argparse.Namespace:
@@ -494,17 +507,13 @@ def main() -> None:
     print(f" Web UI : http://localhost:{args.port}")
     print("==============================================")
 
-    handler = functools.partial(MeshViewerHandler)
-    with socketserver.ThreadingTCPServer(("", args.port), handler) as httpd:
-        httpd.daemon_threads = True
-        if not args.no_browser:
-            threading.Timer(0.5, lambda: webbrowser.open(f"http://localhost:{args.port}")).start()
-        try:
-            httpd.serve_forever()
-        except KeyboardInterrupt:
-            print("\n[mesh-viewer] Shutting down...")
-        finally:
-            httpd.server_close()
+    if not args.no_browser:
+        threading.Timer(0.5, lambda: webbrowser.open(f"http://localhost:{args.port}")).start()
+
+    try:
+        app.run(host="0.0.0.0", port=args.port, threaded=True)
+    except KeyboardInterrupt:
+        print("\n[mesh-viewer] Shutting down...")
 
 
 if __name__ == "__main__":

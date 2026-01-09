@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PRIM Dataset Management</title>
   <link rel="stylesheet" href="styles.css">
-  <script type="module" src="app.js?v=9"></script>
+  <script type="module" src="app.js?v=10"></script>
 </head>
 <body>
   <div class="app">
@@ -24,11 +24,11 @@
       <section class="panel list-panel">
         <div class="panel-header">
           <div>
-            <h2>Records</h2>
-            <p class="muted">With available Mesh</p>
+            <h2>Dataset Explorer</h2>
+            <p class="muted">Browse Room > Session > Time</p>
           </div>
         </div>
-        <div id="mesh-grid" class="grid"></div>
+        <div id="dataset-tree" class="tree"></div>
       </section>
 
       <section class="panel viewer-panel">
@@ -43,10 +43,13 @@
           <div id="viewer"></div>
           <div id="status" class="status hidden"></div>
         </div>
-        <div class="panel-header secondary">
+        <div class="panel-header secondary rir-header">
           <div>
             <h3>RIRs</h3>
             <p class="muted tiny">Visualize and listening</p>
+          </div>
+          <div class="actions">
+            <button id="rir-mode-toggle" class="ghost tiny">Show STFT</button>
           </div>
         </div>
         <div id="rir-grid" class="rir-grid"></div>

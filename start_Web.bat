@@ -7,7 +7,7 @@ set "SCRIPT_DIR=%~dp0prim_web"
 set "SCRIPT_NAME=main.py"
 set "DEFAULT_ROOM=None"
 
-set "DATASET_DIR=%~dp0hl2ss-lk\viewer\dataset"
+set "DATASET_DIR=%~dp0dataset"
 
 echo.
 echo Starting...

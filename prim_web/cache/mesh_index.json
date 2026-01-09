@@ -1,59 +1,843 @@
 {
-  "dataset_root": "C:\\Users\\Haocheng\\Desktop\\GitHub\\PRIM-hl2ss\\hl2ss-lk\\viewer\\dataset",
-  "generated_at": 1764538748.9798486,
-  "mesh_count": 2,
+  "dataset_root": "C:\\Users\\Haocheng\\Desktop\\GitHub\\PRIM-hl2ss\\dataset",
+  "generated_at": 1767903332.3385005,
+  "mesh_count": 9,
   "entries": [
     {
-      "id": "ac251cccd40a",
-      "name": "Home / session_000 / source_pov / mesh",
+      "id": "7fdd5ef27dca",
+      "name": "5C65 / session_000 / source_pov",
+      "rel_path": "5C65/session_000/source_pov/mesh/mesh.obj",
+      "size": 2346723,
+      "mtime": 1764575325.0,
+      "previews": [
+        {
+          "id": "fd9806251563",
+          "name": "PERSONAL_VIDEO.png",
+          "rel_path": "5C65/session_000/source_pov/image/PERSONAL_VIDEO.png",
+          "size": 302928,
+          "mtime": 1764575326.0
+        },
+        {
+          "id": "ad5db25f3c58",
+          "name": "RM_DEPTH_LONGTHROW_ab.png",
+          "rel_path": "5C65/session_000/source_pov/image/RM_DEPTH_LONGTHROW_ab.png",
+          "size": 100935,
+          "mtime": 1764575328.0
+        },
+        {
+          "id": "b447d54a073d",
+          "name": "RM_DEPTH_LONGTHROW_depth.png",
+          "rel_path": "5C65/session_000/source_pov/image/RM_DEPTH_LONGTHROW_depth.png",
+          "size": 7411,
+          "mtime": 1764575328.0
+        },
+        {
+          "id": "929ee68d8182",
+          "name": "RM_VLC_LEFTFRONT.png",
+          "rel_path": "5C65/session_000/source_pov/image/RM_VLC_LEFTFRONT.png",
+          "size": 338972,
+          "mtime": 1764575326.0
+        },
+        {
+          "id": "99e706c1df28",
+          "name": "RM_VLC_LEFTLEFT.png",
+          "rel_path": "5C65/session_000/source_pov/image/RM_VLC_LEFTLEFT.png",
+          "size": 389023,
+          "mtime": 1764575327.0
+        },
+        {
+          "id": "31ad90e4d95f",
+          "name": "RM_VLC_RIGHTFRONT.png",
+          "rel_path": "5C65/session_000/source_pov/image/RM_VLC_RIGHTFRONT.png",
+          "size": 218714,
+          "mtime": 1764575327.0
+        },
+        {
+          "id": "c4eafd531005",
+          "name": "RM_VLC_RIGHTRIGHT.png",
+          "rel_path": "5C65/session_000/source_pov/image/RM_VLC_RIGHTRIGHT.png",
+          "size": 283269,
+          "mtime": 1764575327.0
+        }
+      ],
+      "rirs": [
+        {
+          "id": "c99806a42e68",
+          "name": "BOTTOM_LEFT.wav",
+          "rel_path": "5C65/session_000/source_pov/audio/BOTTOM_LEFT.wav",
+          "size": 1826348,
+          "mtime": 1764575346.0,
+          "channel": "BOTTOM_LEFT"
+        },
+        {
+          "id": "4311d86996bb",
+          "name": "BOTTOM_RIGHT.wav",
+          "rel_path": "5C65/session_000/source_pov/audio/BOTTOM_RIGHT.wav",
+          "size": 1826348,
+          "mtime": 1764575346.0,
+          "channel": "BOTTOM_RIGHT"
+        },
+        {
+          "id": "7657dec8ed96",
+          "name": "TOP_CENTER.wav",
+          "rel_path": "5C65/session_000/source_pov/audio/TOP_CENTER.wav",
+          "size": 1826348,
+          "mtime": 1764575346.0,
+          "channel": "TOP_CENTER"
+        },
+        {
+          "id": "5fb062687c61",
+          "name": "TOP_LEFT.wav",
+          "rel_path": "5C65/session_000/source_pov/audio/TOP_LEFT.wav",
+          "size": 1826348,
+          "mtime": 1764575346.0,
+          "channel": "TOP_LEFT"
+        },
+        {
+          "id": "22e95a5e092e",
+          "name": "TOP_RIGHT.wav",
+          "rel_path": "5C65/session_000/source_pov/audio/TOP_RIGHT.wav",
+          "size": 1826348,
+          "mtime": 1764575346.0,
+          "channel": "TOP_RIGHT"
+        }
+      ],
+      "markers": {
+        "mic": [
+          0.019940165802836418,
+          0.06566540896892548,
+          -0.0899469405412674
+        ],
+        "source": [
+          0.019940165802836418,
+          0.06566540896892548,
+          -0.0899469405412674
+        ]
+      }
+    },
+    {
+      "id": "995ea2941cdb",
+      "name": "5C65 / session_000 / time_1764575128",
+      "rel_path": "5C65/session_000/time_1764575128/mesh/mesh.obj",
+      "size": 2465980,
+      "mtime": 1764575129.0,
+      "previews": [
+        {
+          "id": "a24d7375b549",
+          "name": "PERSONAL_VIDEO.png",
+          "rel_path": "5C65/session_000/time_1764575128/image/PERSONAL_VIDEO.png",
+          "size": 112637,
+          "mtime": 1764575130.0
+        },
+        {
+          "id": "22a707c062b6",
+          "name": "RM_DEPTH_LONGTHROW_ab.png",
+          "rel_path": "5C65/session_000/time_1764575128/image/RM_DEPTH_LONGTHROW_ab.png",
+          "size": 85615,
+          "mtime": 1764575132.0
+        },
+        {
+          "id": "13e38a9f28aa",
+          "name": "RM_DEPTH_LONGTHROW_depth.png",
+          "rel_path": "5C65/session_000/time_1764575128/image/RM_DEPTH_LONGTHROW_depth.png",
+          "size": 20258,
+          "mtime": 1764575132.0
+        },
+        {
+          "id": "032e1f052c4a",
+          "name": "RM_VLC_LEFTFRONT.png",
+          "rel_path": "5C65/session_000/time_1764575128/image/RM_VLC_LEFTFRONT.png",
+          "size": 237146,
+          "mtime": 1764575131.0
+        },
+        {
+          "id": "eb2f50ece133",
+          "name": "RM_VLC_LEFTLEFT.png",
+          "rel_path": "5C65/session_000/time_1764575128/image/RM_VLC_LEFTLEFT.png",
+          "size": 250467,
+          "mtime": 1764575131.0
+        },
+        {
+          "id": "74ebe5dd7abe",
+          "name": "RM_VLC_RIGHTFRONT.png",
+          "rel_path": "5C65/session_000/time_1764575128/image/RM_VLC_RIGHTFRONT.png",
+          "size": 231828,
+          "mtime": 1764575131.0
+        },
+        {
+          "id": "40627471a3cd",
+          "name": "RM_VLC_RIGHTRIGHT.png",
+          "rel_path": "5C65/session_000/time_1764575128/image/RM_VLC_RIGHTRIGHT.png",
+          "size": 339771,
+          "mtime": 1764575132.0
+        }
+      ],
+      "rirs": [
+        {
+          "id": "7fb24911c43f",
+          "name": "BOTTOM_LEFT.wav",
+          "rel_path": "5C65/session_000/time_1764575128/audio/BOTTOM_LEFT.wav",
+          "size": 1829420,
+          "mtime": 1764575149.0,
+          "channel": "BOTTOM_LEFT"
+        },
+        {
+          "id": "a64b5c807cab",
+          "name": "BOTTOM_RIGHT.wav",
+          "rel_path": "5C65/session_000/time_1764575128/audio/BOTTOM_RIGHT.wav",
+          "size": 1829420,
+          "mtime": 1764575149.0,
+          "channel": "BOTTOM_RIGHT"
+        },
+        {
+          "id": "8ff7954197f5",
+          "name": "TOP_CENTER.wav",
+          "rel_path": "5C65/session_000/time_1764575128/audio/TOP_CENTER.wav",
+          "size": 1829420,
+          "mtime": 1764575149.0,
+          "channel": "TOP_CENTER"
+        },
+        {
+          "id": "19314958691f",
+          "name": "TOP_LEFT.wav",
+          "rel_path": "5C65/session_000/time_1764575128/audio/TOP_LEFT.wav",
+          "size": 1829420,
+          "mtime": 1764575149.0,
+          "channel": "TOP_LEFT"
+        },
+        {
+          "id": "0439b1606e3b",
+          "name": "TOP_RIGHT.wav",
+          "rel_path": "5C65/session_000/time_1764575128/audio/TOP_RIGHT.wav",
+          "size": 1829420,
+          "mtime": 1764575149.0,
+          "channel": "TOP_RIGHT"
+        }
+      ],
+      "markers": {
+        "mic": [
+          -0.5437031388282776,
+          -0.2704862654209137,
+          -0.643558919429779
+        ],
+        "source": [
+          0.019940165802836418,
+          0.06566540896892548,
+          -0.0899469405412674
+        ]
+      }
+    },
+    {
+      "id": "2322295ebbca",
+      "name": "5C65 / session_000 / time_1764575161",
+      "rel_path": "5C65/session_000/time_1764575161/mesh/mesh.obj",
+      "size": 2471394,
+      "mtime": 1764575162.0,
+      "previews": [
+        {
+          "id": "fac4198c6d30",
+          "name": "PERSONAL_VIDEO.png",
+          "rel_path": "5C65/session_000/time_1764575161/image/PERSONAL_VIDEO.png",
+          "size": 109040,
+          "mtime": 1764575163.0
+        },
+        {
+          "id": "bb1eabbfa80d",
+          "name": "RM_DEPTH_LONGTHROW_ab.png",
+          "rel_path": "5C65/session_000/time_1764575161/image/RM_DEPTH_LONGTHROW_ab.png",
+          "size": 85290,
+          "mtime": 1764575164.0
+        },
+        {
+          "id": "73189782b4d8",
+          "name": "RM_DEPTH_LONGTHROW_depth.png",
+          "rel_path": "5C65/session_000/time_1764575161/image/RM_DEPTH_LONGTHROW_depth.png",
+          "size": 20310,
+          "mtime": 1764575164.0
+        },
+        {
+          "id": "b48086751ca2",
+          "name": "RM_VLC_LEFTFRONT.png",
+          "rel_path": "5C65/session_000/time_1764575161/image/RM_VLC_LEFTFRONT.png",
+          "size": 234962,
+          "mtime": 1764575163.0
+        },
+        {
+          "id": "b8d6bb18713d",
+          "name": "RM_VLC_LEFTLEFT.png",
+          "rel_path": "5C65/session_000/time_1764575161/image/RM_VLC_LEFTLEFT.png",
+          "size": 252322,
+          "mtime": 1764575163.0
+        },
+        {
+          "id": "869a39655172",
+          "name": "RM_VLC_RIGHTFRONT.png",
+          "rel_path": "5C65/session_000/time_1764575161/image/RM_VLC_RIGHTFRONT.png",
+          "size": 233629,
+          "mtime": 1764575164.0
+        },
+        {
+          "id": "25ec5629e180",
+          "name": "RM_VLC_RIGHTRIGHT.png",
+          "rel_path": "5C65/session_000/time_1764575161/image/RM_VLC_RIGHTRIGHT.png",
+          "size": 337160,
+          "mtime": 1764575164.0
+        }
+      ],
+      "rirs": [
+        {
+          "id": "192051d7a38b",
+          "name": "BOTTOM_LEFT.wav",
+          "rel_path": "5C65/session_000/time_1764575161/audio/BOTTOM_LEFT.wav",
+          "size": 1826348,
+          "mtime": 1764575181.0,
+          "channel": "BOTTOM_LEFT"
+        },
+        {
+          "id": "afe4adea0369",
+          "name": "BOTTOM_RIGHT.wav",
+          "rel_path": "5C65/session_000/time_1764575161/audio/BOTTOM_RIGHT.wav",
+          "size": 1826348,
+          "mtime": 1764575181.0,
+          "channel": "BOTTOM_RIGHT"
+        },
+        {
+          "id": "870caa411ee9",
+          "name": "TOP_CENTER.wav",
+          "rel_path": "5C65/session_000/time_1764575161/audio/TOP_CENTER.wav",
+          "size": 1826348,
+          "mtime": 1764575181.0,
+          "channel": "TOP_CENTER"
+        },
+        {
+          "id": "4dc2cfcc663a",
+          "name": "TOP_LEFT.wav",
+          "rel_path": "5C65/session_000/time_1764575161/audio/TOP_LEFT.wav",
+          "size": 1826348,
+          "mtime": 1764575181.0,
+          "channel": "TOP_LEFT"
+        },
+        {
+          "id": "ae687965cb28",
+          "name": "TOP_RIGHT.wav",
+          "rel_path": "5C65/session_000/time_1764575161/audio/TOP_RIGHT.wav",
+          "size": 1826348,
+          "mtime": 1764575181.0,
+          "channel": "TOP_RIGHT"
+        }
+      ],
+      "markers": {
+        "mic": [
+          -0.5487478971481323,
+          -0.27610349655151367,
+          -0.6423795819282532
+        ],
+        "source": [
+          0.019940165802836418,
+          0.06566540896892548,
+          -0.0899469405412674
+        ]
+      }
+    },
+    {
+      "id": "0467ed8bdbba",
+      "name": "5C65 / session_000 / time_1764575194",
+      "rel_path": "5C65/session_000/time_1764575194/mesh/mesh.obj",
+      "size": 2504072,
+      "mtime": 1764575195.0,
+      "previews": [
+        {
+          "id": "4651cc2abddf",
+          "name": "PERSONAL_VIDEO.png",
+          "rel_path": "5C65/session_000/time_1764575194/image/PERSONAL_VIDEO.png",
+          "size": 310567,
+          "mtime": 1764575196.0
+        },
+        {
+          "id": "7e22a6a3f8da",
+          "name": "RM_DEPTH_LONGTHROW_ab.png",
+          "rel_path": "5C65/session_000/time_1764575194/image/RM_DEPTH_LONGTHROW_ab.png",
+          "size": 69304,
+          "mtime": 1764575197.0
+        },
+        {
+          "id": "9c2c62d819f6",
+          "name": "RM_DEPTH_LONGTHROW_depth.png",
+          "rel_path": "5C65/session_000/time_1764575194/image/RM_DEPTH_LONGTHROW_depth.png",
+          "size": 23149,
+          "mtime": 1764575197.0
+        },
+        {
+          "id": "02ae801321d9",
+          "name": "RM_VLC_LEFTFRONT.png",
+          "rel_path": "5C65/session_000/time_1764575194/image/RM_VLC_LEFTFRONT.png",
+          "size": 264193,
+          "mtime": 1764575196.0
+        },
+        {
+          "id": "d36816acdf80",
+          "name": "RM_VLC_LEFTLEFT.png",
+          "rel_path": "5C65/session_000/time_1764575194/image/RM_VLC_LEFTLEFT.png",
+          "size": 235059,
+          "mtime": 1764575196.0
+        },
+        {
+          "id": "44fef6dc9a1d",
+          "name": "RM_VLC_RIGHTFRONT.png",
+          "rel_path": "5C65/session_000/time_1764575194/image/RM_VLC_RIGHTFRONT.png",
+          "size": 230935,
+          "mtime": 1764575196.0
+        },
+        {
+          "id": "f7da00a36754",
+          "name": "RM_VLC_RIGHTRIGHT.png",
+          "rel_path": "5C65/session_000/time_1764575194/image/RM_VLC_RIGHTRIGHT.png",
+          "size": 253067,
+          "mtime": 1764575197.0
+        }
+      ],
+      "rirs": [
+        {
+          "id": "7813db0ddf09",
+          "name": "BOTTOM_LEFT.wav",
+          "rel_path": "5C65/session_000/time_1764575194/audio/BOTTOM_LEFT.wav",
+          "size": 1824812,
+          "mtime": 1764575214.0,
+          "channel": "BOTTOM_LEFT"
+        },
+        {
+          "id": "77bdbebe046a",
+          "name": "BOTTOM_RIGHT.wav",
+          "rel_path": "5C65/session_000/time_1764575194/audio/BOTTOM_RIGHT.wav",
+          "size": 1824812,
+          "mtime": 1764575214.0,
+          "channel": "BOTTOM_RIGHT"
+        },
+        {
+          "id": "4a2e72fd5579",
+          "name": "TOP_CENTER.wav",
+          "rel_path": "5C65/session_000/time_1764575194/audio/TOP_CENTER.wav",
+          "size": 1824812,
+          "mtime": 1764575214.0,
+          "channel": "TOP_CENTER"
+        },
+        {
+          "id": "c0a7d8b72131",
+          "name": "TOP_LEFT.wav",
+          "rel_path": "5C65/session_000/time_1764575194/audio/TOP_LEFT.wav",
+          "size": 1824812,
+          "mtime": 1764575214.0,
+          "channel": "TOP_LEFT"
+        },
+        {
+          "id": "e84f3e39c287",
+          "name": "TOP_RIGHT.wav",
+          "rel_path": "5C65/session_000/time_1764575194/audio/TOP_RIGHT.wav",
+          "size": 1824812,
+          "mtime": 1764575214.0,
+          "channel": "TOP_RIGHT"
+        }
+      ],
+      "markers": {
+        "mic": [
+          -0.6748293042182922,
+          -0.2749224007129669,
+          -0.5735450983047485
+        ],
+        "source": [
+          0.019940165802836418,
+          0.06566540896892548,
+          -0.0899469405412674
+        ]
+      }
+    },
+    {
+      "id": "787c3d282fe3",
+      "name": "5C65 / session_000 / time_1764575227",
+      "rel_path": "5C65/session_000/time_1764575227/mesh/mesh.obj",
+      "size": 2509292,
+      "mtime": 1764575228.0,
+      "previews": [
+        {
+          "id": "5a0f3d70fcc1",
+          "name": "PERSONAL_VIDEO.png",
+          "rel_path": "5C65/session_000/time_1764575227/image/PERSONAL_VIDEO.png",
+          "size": 229685,
+          "mtime": 1764575229.0
+        },
+        {
+          "id": "b59f5eb97829",
+          "name": "RM_DEPTH_LONGTHROW_ab.png",
+          "rel_path": "5C65/session_000/time_1764575227/image/RM_DEPTH_LONGTHROW_ab.png",
+          "size": 61786,
+          "mtime": 1764575230.0
+        },
+        {
+          "id": "ff825a413ab5",
+          "name": "RM_DEPTH_LONGTHROW_depth.png",
+          "rel_path": "5C65/session_000/time_1764575227/image/RM_DEPTH_LONGTHROW_depth.png",
+          "size": 22130,
+          "mtime": 1764575230.0
+        },
+        {
+          "id": "9f53d63de282",
+          "name": "RM_VLC_LEFTFRONT.png",
+          "rel_path": "5C65/session_000/time_1764575227/image/RM_VLC_LEFTFRONT.png",
+          "size": 247036,
+          "mtime": 1764575229.0
+        },
+        {
+          "id": "c67b59bbbd23",
+          "name": "RM_VLC_LEFTLEFT.png",
+          "rel_path": "5C65/session_000/time_1764575227/image/RM_VLC_LEFTLEFT.png",
+          "size": 272168,
+          "mtime": 1764575229.0
+        },
+        {
+          "id": "dff3b84428c3",
+          "name": "RM_VLC_RIGHTFRONT.png",
+          "rel_path": "5C65/session_000/time_1764575227/image/RM_VLC_RIGHTFRONT.png",
+          "size": 271026,
+          "mtime": 1764575229.0
+        },
+        {
+          "id": "265fa26ffa76",
+          "name": "RM_VLC_RIGHTRIGHT.png",
+          "rel_path": "5C65/session_000/time_1764575227/image/RM_VLC_RIGHTRIGHT.png",
+          "size": 256592,
+          "mtime": 1764575230.0
+        }
+      ],
+      "rirs": [
+        {
+          "id": "21ffcd80a2ad",
+          "name": "BOTTOM_LEFT.wav",
+          "rel_path": "5C65/session_000/time_1764575227/audio/BOTTOM_LEFT.wav",
+          "size": 1826348,
+          "mtime": 1764575247.0,
+          "channel": "BOTTOM_LEFT"
+        },
+        {
+          "id": "b9a46a351662",
+          "name": "BOTTOM_RIGHT.wav",
+          "rel_path": "5C65/session_000/time_1764575227/audio/BOTTOM_RIGHT.wav",
+          "size": 1826348,
+          "mtime": 1764575247.0,
+          "channel": "BOTTOM_RIGHT"
+        },
+        {
+          "id": "5883328f1809",
+          "name": "TOP_CENTER.wav",
+          "rel_path": "5C65/session_000/time_1764575227/audio/TOP_CENTER.wav",
+          "size": 1826348,
+          "mtime": 1764575247.0,
+          "channel": "TOP_CENTER"
+        },
+        {
+          "id": "5977f7804bc8",
+          "name": "TOP_LEFT.wav",
+          "rel_path": "5C65/session_000/time_1764575227/audio/TOP_LEFT.wav",
+          "size": 1826348,
+          "mtime": 1764575247.0,
+          "channel": "TOP_LEFT"
+        },
+        {
+          "id": "88901f62a8eb",
+          "name": "TOP_RIGHT.wav",
+          "rel_path": "5C65/session_000/time_1764575227/audio/TOP_RIGHT.wav",
+          "size": 1826348,
+          "mtime": 1764575247.0,
+          "channel": "TOP_RIGHT"
+        }
+      ],
+      "markers": {
+        "mic": [
+          -0.6239140629768372,
+          -0.27495768666267395,
+          -0.49856796860694885
+        ],
+        "source": [
+          0.019940165802836418,
+          0.06566540896892548,
+          -0.0899469405412674
+        ]
+      }
+    },
+    {
+      "id": "f0e151bdd96d",
+      "name": "5C65 / session_000 / time_1764575259",
+      "rel_path": "5C65/session_000/time_1764575259/mesh/mesh.obj",
+      "size": 2318878,
+      "mtime": 1764575261.0,
+      "previews": [
+        {
+          "id": "ca0dc1959da0",
+          "name": "PERSONAL_VIDEO.png",
+          "rel_path": "5C65/session_000/time_1764575259/image/PERSONAL_VIDEO.png",
+          "size": 151485,
+          "mtime": 1764575262.0
+        },
+        {
+          "id": "9621b596ddac",
+          "name": "RM_DEPTH_LONGTHROW_ab.png",
+          "rel_path": "5C65/session_000/time_1764575259/image/RM_DEPTH_LONGTHROW_ab.png",
+          "size": 102164,
+          "mtime": 1764575263.0
+        },
+        {
+          "id": "5fcc96ea6be2",
+          "name": "RM_DEPTH_LONGTHROW_depth.png",
+          "rel_path": "5C65/session_000/time_1764575259/image/RM_DEPTH_LONGTHROW_depth.png",
+          "size": 26168,
+          "mtime": 1764575263.0
+        },
+        {
+          "id": "b3d0a4cbb456",
+          "name": "RM_VLC_LEFTFRONT.png",
+          "rel_path": "5C65/session_000/time_1764575259/image/RM_VLC_LEFTFRONT.png",
+          "size": 292389,
+          "mtime": 1764575262.0
+        },
+        {
+          "id": "7a12da10fe52",
+          "name": "RM_VLC_LEFTLEFT.png",
+          "rel_path": "5C65/session_000/time_1764575259/image/RM_VLC_LEFTLEFT.png",
+          "size": 340264,
+          "mtime": 1764575262.0
+        },
+        {
+          "id": "e41908ecc222",
+          "name": "RM_VLC_RIGHTFRONT.png",
+          "rel_path": "5C65/session_000/time_1764575259/image/RM_VLC_RIGHTFRONT.png",
+          "size": 277185,
+          "mtime": 1764575262.0
+        },
+        {
+          "id": "93339eac0a0e",
+          "name": "RM_VLC_RIGHTRIGHT.png",
+          "rel_path": "5C65/session_000/time_1764575259/image/RM_VLC_RIGHTRIGHT.png",
+          "size": 259676,
+          "mtime": 1764575263.0
+        }
+      ],
+      "rirs": [
+        {
+          "id": "6feaed967217",
+          "name": "BOTTOM_LEFT.wav",
+          "rel_path": "5C65/session_000/time_1764575259/audio/BOTTOM_LEFT.wav",
+          "size": 1827884,
+          "mtime": 1764575280.0,
+          "channel": "BOTTOM_LEFT"
+        },
+        {
+          "id": "b4d745f87fc1",
+          "name": "BOTTOM_RIGHT.wav",
+          "rel_path": "5C65/session_000/time_1764575259/audio/BOTTOM_RIGHT.wav",
+          "size": 1827884,
+          "mtime": 1764575280.0,
+          "channel": "BOTTOM_RIGHT"
+        },
+        {
+          "id": "919a14dca1cc",
+          "name": "TOP_CENTER.wav",
+          "rel_path": "5C65/session_000/time_1764575259/audio/TOP_CENTER.wav",
+          "size": 1827884,
+          "mtime": 1764575280.0,
+          "channel": "TOP_CENTER"
+        },
+        {
+          "id": "028662f0a0d6",
+          "name": "TOP_LEFT.wav",
+          "rel_path": "5C65/session_000/time_1764575259/audio/TOP_LEFT.wav",
+          "size": 1827884,
+          "mtime": 1764575280.0,
+          "channel": "TOP_LEFT"
+        },
+        {
+          "id": "515b673f0e36",
+          "name": "TOP_RIGHT.wav",
+          "rel_path": "5C65/session_000/time_1764575259/audio/TOP_RIGHT.wav",
+          "size": 1827884,
+          "mtime": 1764575280.0,
+          "channel": "TOP_RIGHT"
+        }
+      ],
+      "markers": {
+        "mic": [
+          -0.474369615316391,
+          -0.2742907702922821,
+          -0.4755467176437378
+        ],
+        "source": [
+          0.019940165802836418,
+          0.06566540896892548,
+          -0.0899469405412674
+        ]
+      }
+    },
+    {
+      "id": "93cd904c4fd7",
+      "name": "5C65 / session_000 / time_1764575292",
+      "rel_path": "5C65/session_000/time_1764575292/mesh/mesh.obj",
+      "size": 2346723,
+      "mtime": 1764575294.0,
+      "previews": [
+        {
+          "id": "a2f9fe47d23d",
+          "name": "PERSONAL_VIDEO.png",
+          "rel_path": "5C65/session_000/time_1764575292/image/PERSONAL_VIDEO.png",
+          "size": 415161,
+          "mtime": 1764575295.0
+        },
+        {
+          "id": "a7ebd9d777a3",
+          "name": "RM_DEPTH_LONGTHROW_ab.png",
+          "rel_path": "5C65/session_000/time_1764575292/image/RM_DEPTH_LONGTHROW_ab.png",
+          "size": 85143,
+          "mtime": 1764575296.0
+        },
+        {
+          "id": "e81f3f6e60b6",
+          "name": "RM_DEPTH_LONGTHROW_depth.png",
+          "rel_path": "5C65/session_000/time_1764575292/image/RM_DEPTH_LONGTHROW_depth.png",
+          "size": 20236,
+          "mtime": 1764575296.0
+        },
+        {
+          "id": "ec4d67a66540",
+          "name": "RM_VLC_LEFTFRONT.png",
+          "rel_path": "5C65/session_000/time_1764575292/image/RM_VLC_LEFTFRONT.png",
+          "size": 363882,
+          "mtime": 1764575295.0
+        },
+        {
+          "id": "92e4565d3d96",
+          "name": "RM_VLC_LEFTLEFT.png",
+          "rel_path": "5C65/session_000/time_1764575292/image/RM_VLC_LEFTLEFT.png",
+          "size": 297233,
+          "mtime": 1764575295.0
+        },
+        {
+          "id": "50dd8cc512e5",
+          "name": "RM_VLC_RIGHTFRONT.png",
+          "rel_path": "5C65/session_000/time_1764575292/image/RM_VLC_RIGHTFRONT.png",
+          "size": 352600,
+          "mtime": 1764575295.0
+        },
+        {
+          "id": "dd563a936642",
+          "name": "RM_VLC_RIGHTRIGHT.png",
+          "rel_path": "5C65/session_000/time_1764575292/image/RM_VLC_RIGHTRIGHT.png",
+          "size": 304591,
+          "mtime": 1764575296.0
+        }
+      ],
+      "rirs": [
+        {
+          "id": "8f6862280d4d",
+          "name": "BOTTOM_LEFT.wav",
+          "rel_path": "5C65/session_000/time_1764575292/audio/BOTTOM_LEFT.wav",
+          "size": 1823276,
+          "mtime": 1764575313.0,
+          "channel": "BOTTOM_LEFT"
+        },
+        {
+          "id": "ea3f2e256a94",
+          "name": "BOTTOM_RIGHT.wav",
+          "rel_path": "5C65/session_000/time_1764575292/audio/BOTTOM_RIGHT.wav",
+          "size": 1823276,
+          "mtime": 1764575313.0,
+          "channel": "BOTTOM_RIGHT"
+        },
+        {
+          "id": "3d8c9c489ba4",
+          "name": "TOP_CENTER.wav",
+          "rel_path": "5C65/session_000/time_1764575292/audio/TOP_CENTER.wav",
+          "size": 1823276,
+          "mtime": 1764575313.0,
+          "channel": "TOP_CENTER"
+        },
+        {
+          "id": "14de0cb5c848",
+          "name": "TOP_LEFT.wav",
+          "rel_path": "5C65/session_000/time_1764575292/audio/TOP_LEFT.wav",
+          "size": 1823276,
+          "mtime": 1764575313.0,
+          "channel": "TOP_LEFT"
+        },
+        {
+          "id": "4ea200ef2274",
+          "name": "TOP_RIGHT.wav",
+          "rel_path": "5C65/session_000/time_1764575292/audio/TOP_RIGHT.wav",
+          "size": 1823276,
+          "mtime": 1764575313.0,
+          "channel": "TOP_RIGHT"
+        }
+      ],
+      "markers": {
+        "mic": [
+          -0.38955631852149963,
+          -0.2731403112411499,
+          -0.5829489231109619
+        ],
+        "source": [
+          0.019940165802836418,
+          0.06566540896892548,
+          -0.0899469405412674
+        ]
+      }
+    },
+    {
+      "id": "90c888e34024",
+      "name": "Home / session_000 / source_pov",
       "rel_path": "Home/session_000/source_pov/mesh/mesh.obj",
       "size": 640272,
       "mtime": 1764200262.706468,
       "previews": [
         {
-          "id": "874454c6b1ba",
+          "id": "87423f6643f7",
           "name": "PERSONAL_VIDEO.png",
           "rel_path": "Home/session_000/source_pov/image/PERSONAL_VIDEO.png",
           "size": 285558,
           "mtime": 1764200263.5191915
         },
         {
-          "id": "3c76bfd20a9e",
+          "id": "979d31881d51",
           "name": "RM_DEPTH_LONGTHROW_ab.png",
           "rel_path": "Home/session_000/source_pov/image/RM_DEPTH_LONGTHROW_ab.png",
           "size": 95977,
           "mtime": 1764200264.9479325
         },
         {
-          "id": "00d344a8b872",
+          "id": "d3e6b2335664",
           "name": "RM_DEPTH_LONGTHROW_depth.png",
           "rel_path": "Home/session_000/source_pov/image/RM_DEPTH_LONGTHROW_depth.png",
           "size": 24378,
           "mtime": 1764200264.9396033
         },
         {
-          "id": "ca838114b1b5",
+          "id": "3ac310473487",
           "name": "RM_VLC_LEFTFRONT.png",
           "rel_path": "Home/session_000/source_pov/image/RM_VLC_LEFTFRONT.png",
           "size": 310687,
           "mtime": 1764200263.7114305
         },
         {
-          "id": "730901f9777b",
+          "id": "9d8bddaeb318",
           "name": "RM_VLC_LEFTLEFT.png",
           "rel_path": "Home/session_000/source_pov/image/RM_VLC_LEFTLEFT.png",
           "size": 442661,
           "mtime": 1764200263.9652064
         },
         {
-          "id": "54785941a986",
+          "id": "91329341e6b1",
           "name": "RM_VLC_RIGHTFRONT.png",
           "rel_path": "Home/session_000/source_pov/image/RM_VLC_RIGHTFRONT.png",
           "size": 284542,
           "mtime": 1764200264.2373946
         },
         {
-          "id": "daafe313ca6a",
+          "id": "dee51516248b",
           "name": "RM_VLC_RIGHTRIGHT.png",
           "rel_path": "Home/session_000/source_pov/image/RM_VLC_RIGHTRIGHT.png",
           "size": 297502,
@@ -62,7 +846,7 @@
       ],
       "rirs": [
         {
-          "id": "bb956b8c7eb4",
+          "id": "70a568534ccd",
           "name": "BOTTOM_LEFT.wav",
           "rel_path": "Home/session_000/source_pov/audio/BOTTOM_LEFT.wav",
           "size": 1827884,
@@ -70,7 +854,7 @@
           "channel": "BOTTOM_LEFT"
         },
         {
-          "id": "7b7289af8882",
+          "id": "b7f8790bbf35",
           "name": "BOTTOM_RIGHT.wav",
           "rel_path": "Home/session_000/source_pov/audio/BOTTOM_RIGHT.wav",
           "size": 1827884,
@@ -78,7 +862,7 @@
           "channel": "BOTTOM_RIGHT"
         },
         {
-          "id": "cda2c8286118",
+          "id": "ad3e759dadc7",
           "name": "TOP_CENTER.wav",
           "rel_path": "Home/session_000/source_pov/audio/TOP_CENTER.wav",
           "size": 1827884,
@@ -86,7 +870,7 @@
           "channel": "TOP_CENTER"
         },
         {
-          "id": "f510b431f37f",
+          "id": "9f0a0611c72b",
           "name": "TOP_LEFT.wav",
           "rel_path": "Home/session_000/source_pov/audio/TOP_LEFT.wav",
           "size": 1827884,
@@ -94,7 +878,7 @@
           "channel": "TOP_LEFT"
         },
         {
-          "id": "14c867a83d56",
+          "id": "40ceb62e14f5",
           "name": "TOP_RIGHT.wav",
           "rel_path": "Home/session_000/source_pov/audio/TOP_RIGHT.wav",
           "size": 1827884,
@@ -109,63 +893,63 @@
           -0.1759262979030609
         ],
         "source": [
-          0.2625550329685211,
-          0.06715048104524612,
-          -0.17596976459026337
+          0.2623409926891327,
+          0.06832955777645111,
+          -0.1759262979030609
         ]
       }
     },
     {
-      "id": "39fb2bcf5d8c",
-      "name": "Home / session_000 / time_1764200230 / mesh",
+      "id": "8e67008d8bf7",
+      "name": "Home / session_000 / time_1764200230",
       "rel_path": "Home/session_000/time_1764200230/mesh/mesh.obj",
       "size": 627498,
       "mtime": 1764200231.37242,
       "previews": [
         {
-          "id": "d8eb6a9e83b9",
+          "id": "3a6325134d09",
           "name": "PERSONAL_VIDEO.png",
           "rel_path": "Home/session_000/time_1764200230/image/PERSONAL_VIDEO.png",
           "size": 242600,
           "mtime": 1764200232.3548374
         },
         {
-          "id": "ab343d6b430f",
+          "id": "53fda72d0b1c",
           "name": "RM_DEPTH_LONGTHROW_ab.png",
           "rel_path": "Home/session_000/time_1764200230/image/RM_DEPTH_LONGTHROW_ab.png",
           "size": 115156,
           "mtime": 1764200233.9355965
         },
         {
-          "id": "8ef834ad928c",
+          "id": "afb4d6ac2d2e",
           "name": "RM_DEPTH_LONGTHROW_depth.png",
           "rel_path": "Home/session_000/time_1764200230/image/RM_DEPTH_LONGTHROW_depth.png",
           "size": 22830,
           "mtime": 1764200233.9272463
         },
         {
-          "id": "9a2cbad97930",
+          "id": "dc0711b97173",
           "name": "RM_VLC_LEFTFRONT.png",
           "rel_path": "Home/session_000/time_1764200230/image/RM_VLC_LEFTFRONT.png",
           "size": 247759,
           "mtime": 1764200232.5882132
         },
         {
-          "id": "61d52207a16d",
+          "id": "ced0856c085c",
           "name": "RM_VLC_LEFTLEFT.png",
           "rel_path": "Home/session_000/time_1764200230/image/RM_VLC_LEFTLEFT.png",
           "size": 285108,
           "mtime": 1764200232.8466697
         },
         {
-          "id": "6c0dd2999e0d",
+          "id": "7c7f4599cbaa",
           "name": "RM_VLC_RIGHTFRONT.png",
           "rel_path": "Home/session_000/time_1764200230/image/RM_VLC_RIGHTFRONT.png",
           "size": 330542,
           "mtime": 1764200233.11384
         },
         {
-          "id": "f726453e6874",
+          "id": "e435b7f15d1f",
           "name": "RM_VLC_RIGHTRIGHT.png",
           "rel_path": "Home/session_000/time_1764200230/image/RM_VLC_RIGHTRIGHT.png",
           "size": 302138,
@@ -174,7 +958,7 @@
       ],
       "rirs": [
         {
-          "id": "191f54ac4fd6",
+          "id": "0bb3be40bd94",
           "name": "BOTTOM_LEFT.wav",
           "rel_path": "Home/session_000/time_1764200230/audio/BOTTOM_LEFT.wav",
           "size": 1827884,
@@ -182,7 +966,7 @@
           "channel": "BOTTOM_LEFT"
         },
         {
-          "id": "692e0912d536",
+          "id": "5c8010a4ed45",
           "name": "BOTTOM_RIGHT.wav",
           "rel_path": "Home/session_000/time_1764200230/audio/BOTTOM_RIGHT.wav",
           "size": 1827884,
@@ -190,7 +974,7 @@
           "channel": "BOTTOM_RIGHT"
         },
         {
-          "id": "38e6576493d3",
+          "id": "9088c9dd1e41",
           "name": "TOP_CENTER.wav",
           "rel_path": "Home/session_000/time_1764200230/audio/TOP_CENTER.wav",
           "size": 1827884,
@@ -198,7 +982,7 @@
           "channel": "TOP_CENTER"
         },
         {
-          "id": "03f0389cbe56",
+          "id": "498f6dc534f6",
           "name": "TOP_LEFT.wav",
           "rel_path": "Home/session_000/time_1764200230/audio/TOP_LEFT.wav",
           "size": 1827884,
@@ -206,7 +990,7 @@
           "channel": "TOP_LEFT"
         },
         {
-          "id": "07068700d98d",
+          "id": "75b25b784291",
           "name": "TOP_RIGHT.wav",
           "rel_path": "Home/session_000/time_1764200230/audio/TOP_RIGHT.wav",
           "size": 1827884,
@@ -216,16 +1000,102 @@
       ],
       "markers": {
         "mic": [
+          0.0017381487414240837,
+          0.07274173200130463,
+          -0.07074397802352905
+        ],
+        "source": [
           0.2623409926891327,
           0.06832955777645111,
           -0.1759262979030609
-        ],
-        "source": [
-          0.2625550329685211,
-          0.06715048104524612,
-          -0.17596976459026337
         ]
       }
+    }
+  ],
+  "tree": [
+    {
+      "name": "5C65",
+      "rel_path": "5C65",
+      "sessions": [
+        {
+          "name": "session_000",
+          "rel_path": "5C65/session_000",
+          "times": [
+            {
+              "name": "source_pov",
+              "rel_path": "5C65/session_000/source_pov",
+              "mesh_id": "7fdd5ef27dca",
+              "has_mesh": true
+            },
+            {
+              "name": "time_1764575128",
+              "rel_path": "5C65/session_000/time_1764575128",
+              "mesh_id": "995ea2941cdb",
+              "has_mesh": true
+            },
+            {
+              "name": "time_1764575161",
+              "rel_path": "5C65/session_000/time_1764575161",
+              "mesh_id": "2322295ebbca",
+              "has_mesh": true
+            },
+            {
+              "name": "time_1764575194",
+              "rel_path": "5C65/session_000/time_1764575194",
+              "mesh_id": "0467ed8bdbba",
+              "has_mesh": true
+            },
+            {
+              "name": "time_1764575227",
+              "rel_path": "5C65/session_000/time_1764575227",
+              "mesh_id": "787c3d282fe3",
+              "has_mesh": true
+            },
+            {
+              "name": "time_1764575259",
+              "rel_path": "5C65/session_000/time_1764575259",
+              "mesh_id": "f0e151bdd96d",
+              "has_mesh": true
+            },
+            {
+              "name": "time_1764575292",
+              "rel_path": "5C65/session_000/time_1764575292",
+              "mesh_id": "93cd904c4fd7",
+              "has_mesh": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Home",
+      "rel_path": "Home",
+      "sessions": [
+        {
+          "name": "session_000",
+          "rel_path": "Home/session_000",
+          "times": [
+            {
+              "name": "source_pov",
+              "rel_path": "Home/session_000/source_pov",
+              "mesh_id": "90c888e34024",
+              "has_mesh": true
+            },
+            {
+              "name": "time_1764200197",
+              "rel_path": "Home/session_000/time_1764200197",
+              "mesh_id": null,
+              "has_mesh": false
+            },
+            {
+              "name": "time_1764200230",
+              "rel_path": "Home/session_000/time_1764200230",
+              "mesh_id": "8e67008d8bf7",
+              "has_mesh": true
+            }
+          ]
+        }
+      ]
     }
   ]
 }

@@ -5,7 +5,7 @@ import { OBJLoader } from './lib/OBJLoader.js';
 const els = {
   datasetPath: document.getElementById('dataset-path'),
   meshCount: document.getElementById('mesh-count'),
-  grid: document.getElementById('mesh-grid'),
+  tree: document.getElementById('dataset-tree'),
   rescanBtn: document.getElementById('rescan-btn'),
   selectedName: document.getElementById('selected-name'),
   meta: document.getElementById('meta'),
@@ -13,6 +13,7 @@ const els = {
   status: document.getElementById('status'),
   previewGrid: document.getElementById('preview-grid'),
   rirGrid: document.getElementById('rir-grid'),
+  rirModeToggle: document.getElementById('rir-mode-toggle'),
 };
 
 function openLightbox(src, alt) {
@@ -31,12 +32,17 @@ const meshCache = new Map();
 const rirDataCache = new Map();
 const state = {
   entries: [],
+  entryById: new Map(),
+  tree: [],
   selected: null,
+  activeTimeKey: null,
+  rirMode: 'waveform',
 };
 
 const markerGroup = new THREE.Group();
+let activeTreeNode = null;
 
-// --- Three.js viewer setup --------------------------------------------------
+// three.js setup
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.setPixelRatio(window.devicePixelRatio);
@@ -81,9 +87,9 @@ function resize() {
 }
 window.addEventListener('resize', resize);
 
-// --- Helpers ----------------------------------------------------------------
+// helpers
 function setStatus(text) {
-  // Keep a quick visual indicator of what failed/succeeded.
+  // quick status hint
   if (!text) {
     els.status.classList.add('hidden');
     els.status.textContent = '';
@@ -130,7 +136,7 @@ function fitToView(object, targetCamera, targetControls) {
     const center = new THREE.Vector3();
     box.getCenter(center);
     const maxDim = Math.max(size.x, size.y, size.z, 0.01);
-    const dir = new THREE.Vector3(0.85, 0.45, 0.7).normalize(); // biased toward looking slightly downward/sideways
+    const dir = new THREE.Vector3(0.85, 0.45, 0.7).normalize(); // slight down/side
     const dist = Math.max(maxDim * 0.4, maxDim * 0.15);
     const pos = center.clone().add(dir.multiplyScalar(dist));
     targetCamera.position.copy(pos);
@@ -147,19 +153,12 @@ function addMarkers(entry, mesh) {
   const markers = entry.markers || {};
   const mic = markers.mic;
   const src = markers.source;
+  const isSourcePov = typeof entry.rel_path === 'string' && entry.rel_path.includes('source_pov');
   if (!mic && !src) return;
 
   const box = new THREE.Box3().setFromObject(mesh);
   const diag = box.getSize(new THREE.Vector3()).length();
   const base = Math.max(0.02, Math.min(0.05, diag * 0.02 || 0.05));
-
-  if (mic) {
-    const geom = new THREE.SphereGeometry(base * 0.5, 16, 12);
-    const mat = new THREE.MeshStandardMaterial({ color: 0xff3b30, emissive: 0x3b0a0a, emissiveIntensity: 0.6 });
-    const sphere = new THREE.Mesh(geom, mat);
-    sphere.position.set(mic[0], mic[1], mic[2]);
-    markerGroup.add(sphere);
-  }
 
   if (src) {
     const spriteMap = new THREE.CanvasTexture(createSpeakerSprite());
@@ -167,6 +166,15 @@ function addMarkers(entry, mesh) {
     const sprite = new THREE.Sprite(material);
     sprite.scale.set(base * 3, base * 3, 1);
     sprite.position.set(src[0], src[1], src[2]);
+    markerGroup.add(sprite);
+  }
+
+  if (mic && !isSourcePov) {
+    const spriteMap = new THREE.CanvasTexture(createEmojiSprite());
+    const material = new THREE.SpriteMaterial({ map: spriteMap, transparent: true, depthWrite: false, sizeAttenuation: true });
+    const sprite = new THREE.Sprite(material);
+    sprite.scale.set(base * 2.5, base * 2.5, 1);
+    sprite.position.set(mic[0], mic[1], mic[2]);
     markerGroup.add(sprite);
   }
 }
@@ -183,6 +191,20 @@ function createSpeakerSprite() {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText('🔈', size / 2, size / 2);
+  return canvas;
+}
+
+function createEmojiSprite() {
+  const size = 128;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, size, size);
+  ctx.font = '96px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('😎', size / 2, size / 2);
   return canvas;
 }
 
@@ -234,91 +256,149 @@ async function loadMesh(entry) {
   }
 }
 
-async function renderThumbnail(entry, canvas) {
-  try {
-    const obj = (await getMesh(entry)).clone(true);
-    applyMaterial(obj);
-    const width = canvas.clientWidth || 120;
-    const height = canvas.clientHeight || 90;
-    const thumbRenderer = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: true,
-      canvas,
-    });
-    thumbRenderer.setSize(width, height, false);
-    thumbRenderer.outputColorSpace = THREE.SRGBColorSpace;
-    const thumbScene = new THREE.Scene();
-    const thumbCamera = new THREE.PerspectiveCamera(55, width / height, 0.01, 5000);
-    thumbScene.add(new THREE.AmbientLight(0xffffff, 0.6));
-    const light = new THREE.DirectionalLight(0xffffff, 0.6);
-    light.position.set(2, 3, 2);
-    thumbScene.add(light);
-    thumbScene.add(obj);
-    fitToView(obj, thumbCamera, { target: new THREE.Vector3(), update() {} });
-    thumbRenderer.render(thumbScene, thumbCamera);
-    thumbRenderer.dispose();
-  } catch (err) {
-    console.warn('Failed to render thumbnail', err);
-    canvas.classList.add('muted');
+
+
+function setActiveTreeNode(node) {
+  if (activeTreeNode) {
+    activeTreeNode.classList.remove('active');
+  }
+  activeTreeNode = node;
+  if (activeTreeNode) {
+    activeTreeNode.classList.add('active');
   }
 }
 
-function createCard(entry) {
-  const card = document.createElement('div');
-  card.className = 'card';
+function showMissingSelection(time) {
+  clearActiveMesh();
+  els.selectedName.textContent = `${time.name} (no mesh)`;
+  els.meta.textContent = '';
+  els.previewGrid.innerHTML = '';
+  els.rirGrid.innerHTML = '';
 
-  const preferred = (entry.previews || []).find((p) => p.name.toLowerCase().startsWith('personal_video'));
-  const cover = preferred || (entry.previews && entry.previews[0]);
+  const previewMsg = document.createElement('p');
+  previewMsg.className = 'muted tiny';
+  previewMsg.textContent = 'Mesh missing for this time folder.';
+  els.previewGrid.appendChild(previewMsg);
 
-  let canvas = null;
-  let thumbNode = null;
-  if (cover) {
-    const img = document.createElement('img');
-    img.className = 'thumb-img';
-    img.src = `/preview/${cover.id}`;
-    img.alt = cover.name;
-    thumbNode = img;
-  } else {
-    canvas = document.createElement('canvas');
-    canvas.className = 'thumb';
-    canvas.width = 240;
-    canvas.height = 180;
-    thumbNode = canvas;
-  }
-
-  const body = document.createElement('div');
-  const title = document.createElement('h3');
-  title.textContent = entry.name;
-  const meta = document.createElement('div');
-  meta.className = 'meta';
-  const previewCount = (entry.previews && entry.previews.length) || 0;
-  const previewLabel = previewCount ? ` · ${previewCount} previews` : '';
-  meta.textContent = `${formatBytes(entry.size)} | ${entry.rel_path}${previewLabel}`;
-
-  body.appendChild(title);
-  body.appendChild(meta);
-
-  card.appendChild(thumbNode);
-  card.appendChild(body);
-
-  card.addEventListener('click', () => loadMesh(entry));
-
-  if (canvas) {
-    renderThumbnail(entry, canvas);
-  }
-  return card;
+  const rirMsg = document.createElement('p');
+  rirMsg.className = 'muted tiny';
+  rirMsg.textContent = 'Mesh missing for this time folder.';
+  els.rirGrid.appendChild(rirMsg);
+  setStatus('Mesh missing for this time folder.');
+  state.selected = null;
 }
 
-function renderGrid(entries) {
-  els.grid.innerHTML = '';
-  if (entries.length === 0) {
-    const empty = document.createElement('p');
-    empty.className = 'muted';
-    empty.textContent = 'No mesh.obj found. Check the dataset folder.';
-    els.grid.appendChild(empty);
+function selectTime(time, node) {
+  setActiveTreeNode(node);
+  state.activeTimeKey = time.rel_path;
+  if (!time.has_mesh || !time.mesh_id) {
+    showMissingSelection(time);
     return;
   }
-  entries.forEach((entry) => els.grid.appendChild(createCard(entry)));
+  const entry = state.entryById.get(time.mesh_id);
+  if (!entry) {
+    setStatus('Mesh metadata unavailable. Try rescanning.');
+    return;
+  }
+  loadMesh(entry);
+}
+
+function createTimeRow(time) {
+  const row = document.createElement('div');
+  row.className = `tree-row time ${time.has_mesh ? '' : 'missing'}`;
+  row.dataset.timeKey = time.rel_path;
+
+  const label = document.createElement('span');
+  label.className = 'label';
+  label.textContent = time.name;
+
+  const badge = document.createElement('span');
+  badge.className = `badge ${time.has_mesh ? '' : 'badge-missing'}`;
+  badge.textContent = time.has_mesh ? 'mesh.obj' : 'Mesh missing';
+
+  row.appendChild(label);
+  row.appendChild(badge);
+
+  row.addEventListener('click', (evt) => {
+    evt.stopPropagation();
+    selectTime(time, row);
+  });
+
+  return row;
+}
+
+function renderTree(tree) {
+  els.tree.innerHTML = '';
+  setActiveTreeNode(null);
+  if (!tree.length) {
+    const empty = document.createElement('p');
+    empty.className = 'muted';
+    empty.textContent = 'No rooms found under dataset.';
+    els.tree.appendChild(empty);
+    return;
+  }
+
+  let selection = null;
+
+  tree.forEach((room) => {
+    const roomNode = document.createElement('details');
+    roomNode.className = 'tree-node room';
+    roomNode.open = true;
+
+    const roomHeader = document.createElement('summary');
+    roomHeader.textContent = room.name;
+    roomNode.appendChild(roomHeader);
+
+    const sessionWrap = document.createElement('div');
+    sessionWrap.className = 'tree-children';
+
+    (room.sessions || []).forEach((session) => {
+      const sessionNode = document.createElement('details');
+      sessionNode.className = 'tree-node session';
+      sessionNode.open = false;
+      const sessionHeader = document.createElement('summary');
+      sessionHeader.textContent = session.name;
+      sessionNode.appendChild(sessionHeader);
+
+      const timeWrap = document.createElement('div');
+      timeWrap.className = 'tree-children';
+      (session.times || []).forEach((time) => {
+        const row = createTimeRow(time);
+        timeWrap.appendChild(row);
+        if (time.rel_path === state.activeTimeKey) {
+          selection = { time, row };
+          sessionNode.open = true;
+          roomNode.open = true;
+        } else if (!selection && time.has_mesh) {
+          selection = { time, row };
+        }
+      });
+
+      if (timeWrap.children.length) {
+        sessionNode.appendChild(timeWrap);
+        sessionWrap.appendChild(sessionNode);
+      }
+    });
+
+    if (sessionWrap.children.length) {
+      roomNode.appendChild(sessionWrap);
+      els.tree.appendChild(roomNode);
+    }
+  });
+
+  if (selection) {
+    selectTime(selection.time, selection.row);
+  } else {
+    setStatus(tree.length ? 'No mesh.obj detected under times.' : 'Dataset is empty.');
+    clearActiveMesh();
+    setActiveTreeNode(null);
+    state.activeTimeKey = null;
+    state.selected = null;
+    els.selectedName.textContent = 'Select a mesh to inspect';
+    els.meta.textContent = '';
+    els.previewGrid.innerHTML = '';
+    els.rirGrid.innerHTML = '';
+  }
 }
 
 function renderPreviews(entry) {
@@ -358,7 +438,7 @@ async function loadRIRData(url) {
       return res.arrayBuffer();
     });
 
-    // Try WebAudio first
+    // try WebAudio first
     if (window.AudioContext) {
       try {
         const audioBuffer = await new AudioContext().decodeAudioData(buf.slice(0));
@@ -371,7 +451,7 @@ async function loadRIRData(url) {
       }
     }
 
-    // Manual PCM16 little-endian parse
+    // manual PCM16 parse
     const view = new DataView(buf);
     if (view.getUint32(0, false) !== 0x52494646) {
       throw new Error('Not RIFF');
@@ -413,7 +493,8 @@ async function drawWaveform(url, canvas) {
   const ctx = canvas.getContext('2d');
   const width = canvas.width;
   const height = canvas.height;
-  ctx.clearRect(0, 0, width, height);
+  ctx.fillStyle = '#0a0f1f';
+  ctx.fillRect(0, 0, width, height);
   ctx.strokeStyle = '#38bdf8';
   ctx.lineWidth = 1;
   try {
@@ -421,7 +502,7 @@ async function drawWaveform(url, canvas) {
     const data = rir.samples;
     const amp = height / 2;
 
-    // Full-scan peak to normalize reliably.
+    // full scan peak for norm
     let maxAbs = 0;
     for (let i = 0; i < data.length; i += 1) {
       const a = Math.abs(data[i]);
@@ -454,9 +535,146 @@ async function drawWaveform(url, canvas) {
   }
 }
 
+function fftRadix2(re, im) {
+  const n = re.length;
+  if (n <= 1 || (n & (n - 1)) !== 0) return;
+
+  for (let i = 1, j = 0; i < n; i += 1) {
+    let bit = n >> 1;
+    for (; j & bit; bit >>= 1) j &= ~bit;
+    j |= bit;
+    if (i < j) {
+      [re[i], re[j]] = [re[j], re[i]];
+      [im[i], im[j]] = [im[j], im[i]];
+    }
+  }
+
+  for (let len = 2; len <= n; len <<= 1) {
+    const ang = -2 * Math.PI / len;
+    const wLenCos = Math.cos(ang);
+    const wLenSin = Math.sin(ang);
+    for (let i = 0; i < n; i += len) {
+      let wCos = 1;
+      let wSin = 0;
+      for (let j = 0; j < len / 2; j += 1) {
+        const uRe = re[i + j];
+        const uIm = im[i + j];
+        const vRe = re[i + j + len / 2] * wCos - im[i + j + len / 2] * wSin;
+        const vIm = re[i + j + len / 2] * wSin + im[i + j + len / 2] * wCos;
+        re[i + j] = uRe + vRe;
+        im[i + j] = uIm + vIm;
+        re[i + j + len / 2] = uRe - vRe;
+        im[i + j + len / 2] = uIm - vIm;
+        const nextCos = wCos * wLenCos - wSin * wLenSin;
+        wSin = wCos * wLenSin + wSin * wLenCos;
+        wCos = nextCos;
+      }
+    }
+  }
+}
+
+function spectrogramColor(t) {
+  const x = Math.min(Math.max(t, 0), 1);
+  // warm-cool ramp
+  const r = Math.floor(255 * x);
+  const g = Math.floor(200 * Math.sqrt(x));
+  const b = Math.floor(80 + 140 * (1 - x));
+  return [r, g, b];
+}
+
+async function drawSpectrogram(url, canvas) {
+  const ctx = canvas.getContext('2d');
+  const { width, height } = canvas;
+  ctx.fillStyle = '#0a0f1f';
+  ctx.fillRect(0, 0, width, height);
+  try {
+    const rir = await loadRIRData(url);
+    const data = rir.samples;
+    const fftSize = 512;
+    const hop = 256;
+    const window = new Float32Array(fftSize);
+    for (let i = 0; i < fftSize; i += 1) {
+      window[i] = 0.5 * (1 - Math.cos((2 * Math.PI * i) / (fftSize - 1))); // Hann
+    }
+
+    const frameCount = Math.max(1, Math.floor((data.length - fftSize) / hop) + 1);
+    const spectra = new Array(frameCount);
+    let maxMag = 1e-8;
+
+    for (let frame = 0; frame < frameCount; frame += 1) {
+      const re = new Float32Array(fftSize);
+      const im = new Float32Array(fftSize);
+      const start = frame * hop;
+      for (let i = 0; i < fftSize; i += 1) {
+        const idx = start + i;
+        const sample = idx < data.length ? data[idx] : 0;
+        re[i] = sample * window[i];
+      }
+      fftRadix2(re, im);
+      const mags = new Float32Array(fftSize / 2);
+      for (let k = 0; k < fftSize / 2; k += 1) {
+        const mag = Math.hypot(re[k], im[k]);
+        mags[k] = mag;
+        if (mag > maxMag) maxMag = mag;
+      }
+      spectra[frame] = mags;
+    }
+
+    const dynRange = 60; // dB range
+    const image = ctx.createImageData(width, height);
+    for (let x = 0; x < width; x += 1) {
+      const frameIdx = spectra.length === 1 ? 0 : Math.floor((x / (width - 1)) * (spectra.length - 1));
+      const spectrum = spectra[frameIdx] || spectra[spectra.length - 1];
+      for (let y = 0; y < height; y += 1) {
+        const bin = spectrum.length === 1 ? 0 : Math.floor(((height - 1 - y) / (height - 1)) * (spectrum.length - 1));
+        const mag = spectrum[bin];
+        const db = 20 * Math.log10(mag / maxMag + 1e-8);
+        const norm = Math.min(Math.max(1 + db / dynRange, 0), 1); // 0 at -dynRange
+        const [r, g, b] = spectrogramColor(norm);
+        const idx = (y * width + x) * 4;
+        image.data[idx] = r;
+        image.data[idx + 1] = g;
+        image.data[idx + 2] = b;
+        image.data[idx + 3] = 255;
+      }
+    }
+    ctx.putImageData(image, 0, 0);
+  } catch (err) {
+    ctx.fillStyle = '#ef4444';
+    ctx.fillText('Spectrogram unavailable', 8, height / 2);
+    console.warn('Spectrogram render failed', err);
+  }
+}
+
+async function openRIRLightbox(rir, mode) {
+  const overlay = document.createElement('div');
+  overlay.className = 'lightbox';
+  const canvas = document.createElement('canvas');
+  canvas.width = mode === 'spectrogram' ? 1200 : 1200;
+  canvas.height = mode === 'spectrogram' ? 600 : 400;
+  overlay.appendChild(canvas);
+  overlay.addEventListener('click', () => overlay.remove());
+  document.body.appendChild(overlay);
+  try {
+    if (mode === 'spectrogram') {
+      await drawSpectrogram(`/rir/${rir.id}`, canvas);
+    } else {
+      await drawWaveform(`/rir/${rir.id}`, canvas);
+    }
+  } catch (err) {
+    console.warn('Lightbox render failed', err);
+  }
+}
+
+function updateRirModeToggle() {
+  if (!els.rirModeToggle) return;
+  const mode = state.rirMode === 'spectrogram' ? 'spectrogram' : 'waveform';
+  els.rirModeToggle.textContent = mode === 'waveform' ? 'Show STFT' : 'Show waveform';
+}
+
 function renderRirs(entry) {
   els.rirGrid.innerHTML = '';
-  const rirs = entry.rirs || [];
+  const rirs = entry?.rirs || [];
   if (!rirs.length) {
     const empty = document.createElement('p');
     empty.className = 'muted tiny';
@@ -465,18 +683,26 @@ function renderRirs(entry) {
     return;
   }
 
+  const mode = state.rirMode === 'spectrogram' ? 'spectrogram' : 'waveform';
+  const renderFn = mode === 'spectrogram' ? drawSpectrogram : drawWaveform;
+  const canvasHeight = mode === 'spectrogram' ? 140 : 70;
+
   rirs.forEach((rir) => {
     const card = document.createElement('div');
     card.className = 'rir-card';
 
     const canvas = document.createElement('canvas');
     canvas.width = 320;
-  canvas.height = 70;
-    drawWaveform(`/rir/${rir.id}`, canvas);
+    canvas.height = canvasHeight;
+    canvas.style.height = `${canvasHeight}px`;
+    canvas.title = `Click to view ${mode === 'spectrogram' ? 'STFT' : 'waveform'} in full size`;
+    renderFn(`/rir/${rir.id}`, canvas);
+    canvas.addEventListener('click', () => openRIRLightbox(rir, mode));
 
     const label = document.createElement('div');
     label.className = 'label';
-    label.textContent = `${rir.channel} (${Math.round(rir.size / 1024)} KB)`;
+    const kb = Math.round(rir.size / 1024);
+    label.textContent = `${rir.channel} (${kb} KB) · ${mode === 'spectrogram' ? 'STFT' : 'Waveform'}`;
 
     const audio = document.createElement('audio');
     audio.controls = true;
@@ -495,18 +721,20 @@ async function fetchList(endpoint = '/api/list') {
   return res.json();
 }
 
+function syncStateFromResponse(data) {
+  state.entries = data.entries || [];
+  state.entryById = new Map(state.entries.map((entry) => [entry.id, entry]));
+  state.tree = data.tree || [];
+  els.datasetPath.textContent = data.dataset_root || 'Dataset not set';
+  els.meshCount.textContent = data.mesh_count ?? state.entries.length;
+}
+
 async function init() {
   setStatus('Loading index...');
   try {
     const data = await fetchList();
-    state.entries = data.entries || [];
-    els.datasetPath.textContent = data.dataset_root || 'Dataset not set';
-    els.meshCount.textContent = data.mesh_count ?? state.entries.length;
-    renderGrid(state.entries);
-    setStatus('');
-    if (state.entries.length) {
-      loadMesh(state.entries[0]);
-    }
+    syncStateFromResponse(data);
+    renderTree(state.tree);
   } catch (err) {
     console.error(err);
     setStatus('Cannot fetch list. Check server logs.');
@@ -517,9 +745,10 @@ els.rescanBtn.addEventListener('click', async () => {
   setStatus('Rescanning...');
   try {
     const data = await fetchList('/api/rescan');
-    state.entries = data.entries || [];
-    els.meshCount.textContent = data.mesh_count ?? state.entries.length;
-    renderGrid(state.entries);
+    meshCache.clear();
+    rirDataCache.clear();
+    syncStateFromResponse(data);
+    renderTree(state.tree);
     setStatus(state.entries.length ? '' : 'No mesh.obj detected.');
   } catch (err) {
     console.error(err);
@@ -527,7 +756,15 @@ els.rescanBtn.addEventListener('click', async () => {
   }
 });
 
-// Surface unexpected errors directly in the UI to help debugging without devtools.
+els.rirModeToggle.addEventListener('click', () => {
+  state.rirMode = state.rirMode === 'spectrogram' ? 'waveform' : 'spectrogram';
+  updateRirModeToggle();
+  if (state.selected) {
+    renderRirs(state.selected);
+  }
+});
+
+// bubble unexpected errors
 window.addEventListener('error', (e) => {
   setStatus(`JS error: ${e.message}`);
 });
@@ -535,4 +772,5 @@ window.addEventListener('unhandledrejection', (e) => {
   setStatus(`Promise error: ${e.reason}`);
 });
 
+updateRirModeToggle();
 init();
