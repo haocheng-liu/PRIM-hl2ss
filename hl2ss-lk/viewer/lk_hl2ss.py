@@ -334,7 +334,7 @@ def audio_player(overall_script_stop_event : Event,
     '''
     folder = 'sound_fx'
     countdown_beep_wave_obj = sa.WaveObject.from_wave_file(os.path.join(folder,"countdown_beep_loud.wav"))
-    ESS_wave_obj = sa.WaveObject.from_wave_file(os.path.join(folder,"ESS_x5_1second_pause.wav"))
+    ESS_wave_obj = sa.WaveObject.from_wave_file(os.path.join(folder,"ESS_x7_1second_pause.wav"))
     src_pov_warning_wave_obj = sa.WaveObject.from_wave_file(os.path.join(folder,"source_get_ready_warning.wav"))
     white_blast_wave_obj = sa.WaveObject.from_wave_file(os.path.join(folder,"white_noise_48kHz_1second.wav"))
     out_queue.put("started")
