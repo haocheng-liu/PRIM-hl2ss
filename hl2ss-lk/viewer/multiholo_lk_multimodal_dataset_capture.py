@@ -117,6 +117,18 @@ def multi_rec_sesh_manager(overall_script_stop_event: mp.Event,
             formatted_session_no = f"{session_no:03}"
             print(f"Starting new recording session n°{formatted_session_no}. n_recordings = {n_recordings}")
 
+            try:
+                session_note = input("Notes(optional)): ").strip()
+            except EOFError:
+                session_note = ""
+
+            for label in device_labels:
+                session_dir = os.path.join("dataset", room_root, f"session_{formatted_session_no}_{label.lower()}")
+                os.makedirs(session_dir, exist_ok=True)
+                note_path = os.path.join(session_dir, "session_note.txt")
+                with open(note_path, "w") as f:
+                    f.write(session_note + "\n")
+
             session_running_flag.set()
 
             for i in range(5):
