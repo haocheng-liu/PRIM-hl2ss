@@ -152,9 +152,10 @@ function addMarkers(entry, mesh) {
   markerGroup.clear();
   const markers = entry.markers || {};
   const mic = markers.mic;
+  const micList = Array.isArray(markers.mics) ? markers.mics : (mic ? [mic] : []);
   const src = markers.source;
   const isSourcePov = typeof entry.rel_path === 'string' && entry.rel_path.includes('source_pov');
-  if (!mic && !src) return;
+  if (!micList.length && !src) return;
 
   const box = new THREE.Box3().setFromObject(mesh);
   const diag = box.getSize(new THREE.Vector3()).length();
@@ -169,13 +170,15 @@ function addMarkers(entry, mesh) {
     markerGroup.add(sprite);
   }
 
-  if (mic && !isSourcePov) {
+  if (micList.length && !isSourcePov) {
     const spriteMap = new THREE.CanvasTexture(createEmojiSprite());
     const material = new THREE.SpriteMaterial({ map: spriteMap, transparent: true, depthWrite: false, sizeAttenuation: true });
-    const sprite = new THREE.Sprite(material);
-    sprite.scale.set(base * 2.5, base * 2.5, 1);
-    sprite.position.set(mic[0], mic[1], mic[2]);
-    markerGroup.add(sprite);
+    micList.forEach((pos) => {
+      const sprite = new THREE.Sprite(material);
+      sprite.scale.set(base * 2.5, base * 2.5, 1);
+      sprite.position.set(pos[0], pos[1], pos[2]);
+      markerGroup.add(sprite);
+    });
   }
 }
 
@@ -288,9 +291,111 @@ function showMissingSelection(time) {
   state.selected = null;
 }
 
+function isMergeNode(time) {
+  return time && time.kind === 'merge';
+}
+
+function isTsdfNode(time) {
+  return time && time.kind === 'tsdf';
+}
+
+async function generateMergedSession(time, node) {
+  if (!time?.session_rel_path) {
+    setStatus('Missing session path for merge.');
+    return;
+  }
+  if (node.classList.contains('loading')) return;
+
+  const badge = node.querySelector('.badge');
+  if (badge) badge.textContent = 'Generating...';
+  node.classList.add('loading');
+  setStatus('Generating merged mesh...');
+  try {
+    const res = await fetch('/api/merge-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_rel_path: time.session_rel_path }),
+    });
+    let data = null;
+    try {
+      data = await res.json();
+    } catch (err) {
+      data = null;
+    }
+    if (!res.ok) {
+      const msg = data?.error || `Merge failed (${res.status})`;
+      throw new Error(msg);
+    }
+    if (!data) throw new Error('Merge failed (empty response).');
+    if (data.merged_mesh_id) meshCache.delete(data.merged_mesh_id);
+    syncStateFromResponse(data);
+    const outputKey = data.output_time_rel_path
+      || (data.merged_rel_path ? data.merged_rel_path.replace(/\/mesh\.obj$/, '') : null)
+      || time.rel_path;
+    state.activeTimeKey = outputKey;
+    renderTree(state.tree);
+  } catch (err) {
+    console.error(err);
+    setStatus(err.message || 'Merge failed.');
+    node.classList.remove('loading');
+    if (badge) badge.textContent = 'Generate';
+  }
+}
+
+async function generateTsdfSession(time, node) {
+  if (!time?.session_rel_path) {
+    setStatus('Missing session path for TSDF.');
+    return;
+  }
+  if (node.classList.contains('loading')) return;
+
+  const badge = node.querySelector('.badge');
+  if (badge) badge.textContent = 'Generating...';
+  node.classList.add('loading');
+  setStatus('Generating TSDF mesh...');
+  try {
+    const res = await fetch('/api/tsdf-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_rel_path: time.session_rel_path }),
+    });
+    let data = null;
+    try {
+      data = await res.json();
+    } catch (err) {
+      data = null;
+    }
+    if (!res.ok) {
+      const msg = data?.error || `TSDF failed (${res.status})`;
+      throw new Error(msg);
+    }
+    if (!data) throw new Error('TSDF failed (empty response).');
+    if (data.merged_mesh_id) meshCache.delete(data.merged_mesh_id);
+    syncStateFromResponse(data);
+    const outputKey = data.output_time_rel_path
+      || (data.merged_rel_path ? data.merged_rel_path.replace(/\/mesh\.obj$/, '') : null)
+      || time.rel_path;
+    state.activeTimeKey = outputKey;
+    renderTree(state.tree);
+  } catch (err) {
+    console.error(err);
+    setStatus(err.message || 'TSDF failed.');
+    node.classList.remove('loading');
+    if (badge) badge.textContent = 'Generate';
+  }
+}
+
 function selectTime(time, node) {
   setActiveTreeNode(node);
   state.activeTimeKey = time.rel_path;
+  if (isMergeNode(time) && !time.has_mesh) {
+    generateMergedSession(time, node);
+    return;
+  }
+  if (isTsdfNode(time) && !time.has_mesh) {
+    generateTsdfSession(time, node);
+    return;
+  }
   if (!time.has_mesh || !time.mesh_id) {
     showMissingSelection(time);
     return;
@@ -305,7 +410,10 @@ function selectTime(time, node) {
 
 function createTimeRow(time) {
   const row = document.createElement('div');
-  row.className = `tree-row time ${time.has_mesh ? '' : 'missing'}`;
+  const mergeNode = isMergeNode(time);
+  const tsdfNode = isTsdfNode(time);
+  const missing = !time.has_mesh && !mergeNode && !tsdfNode;
+  row.className = `tree-row time${missing ? ' missing' : ''}${mergeNode ? ' merge' : ''}${tsdfNode ? ' tsdf' : ''}`;
   row.dataset.timeKey = time.rel_path;
 
   const label = document.createElement('span');
@@ -313,8 +421,16 @@ function createTimeRow(time) {
   label.textContent = time.name;
 
   const badge = document.createElement('span');
-  badge.className = `badge ${time.has_mesh ? '' : 'badge-missing'}`;
-  badge.textContent = time.has_mesh ? 'mesh.obj' : 'Mesh missing';
+  if (mergeNode) {
+    badge.className = `badge ${time.has_mesh ? 'badge-merged' : 'badge-merge'}`;
+    badge.textContent = time.has_mesh ? 'Merged mesh' : 'Generate';
+  } else if (tsdfNode) {
+    badge.className = `badge ${time.has_mesh ? 'badge-tsdf-ready' : 'badge-tsdf'}`;
+    badge.textContent = time.has_mesh ? 'TSDF mesh' : 'Generate';
+  } else {
+    badge.className = `badge ${time.has_mesh ? '' : 'badge-missing'}`;
+    badge.textContent = time.has_mesh ? 'mesh.obj' : 'Mesh missing';
+  }
 
   row.appendChild(label);
   row.appendChild(badge);

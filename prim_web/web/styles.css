@@ -230,6 +230,30 @@ button.ghost {
   color: #f87171;
 }
 
+.tree-row.merge {
+  background: linear-gradient(120deg, rgba(14, 116, 144, 0.25), rgba(10, 15, 31, 0.9));
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.tree-row.merge .label {
+  color: #e0f2fe;
+}
+
+.tree-row.tsdf {
+  background: linear-gradient(120deg, rgba(202, 138, 4, 0.2), rgba(10, 15, 31, 0.9));
+  border-color: rgba(245, 158, 11, 0.45);
+}
+
+.tree-row.tsdf .label {
+  color: #fef3c7;
+}
+
+.tree-row.loading {
+  cursor: progress;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
 .badge {
   padding: 4px 8px;
   border-radius: 999px;
@@ -243,6 +267,30 @@ button.ghost {
   background: rgba(239, 68, 68, 0.08);
   color: #f87171;
   border-color: rgba(239, 68, 68, 0.4);
+}
+
+.badge-merge {
+  background: rgba(56, 189, 248, 0.18);
+  color: #7dd3fc;
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.badge-merged {
+  background: rgba(16, 185, 129, 0.16);
+  color: #86efac;
+  border-color: rgba(16, 185, 129, 0.45);
+}
+
+.badge-tsdf {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fde68a;
+  border-color: rgba(245, 158, 11, 0.45);
+}
+
+.badge-tsdf-ready {
+  background: rgba(251, 191, 36, 0.22);
+  color: #fef3c7;
+  border-color: rgba(251, 191, 36, 0.5);
 }
 
 .card {
