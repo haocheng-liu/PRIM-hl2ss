@@ -40,7 +40,8 @@ def rec_sesh_manager(overall_script_stop_event : Event,
         instruction_queues : dict[str,mp.Queue],
         out_queues : dict[str,mp.Queue],
         n_recordings : int,
-        room_name : str):
+        room_name : str,
+        prompt_for_extra_recordings : bool = False):
     '''
     Main logic behind a recording session
     '''
@@ -73,7 +74,10 @@ def rec_sesh_manager(overall_script_stop_event : Event,
             formatted_session_no = f"{session_no:03}"
             
             # Start message
-            print(f"Starting new recording session n°{formatted_session_no}. n_recordings = {n_recordings}")
+            if prompt_for_extra_recordings:
+                print(f"Starting new recording session n°{formatted_session_no}. n_recordings = {n_recordings} (+ prompt)")
+            else:
+                print(f"Starting new recording session n°{formatted_session_no}. n_recordings = {n_recordings}")
             
             # Start time
             session_running_flag.set()
@@ -82,58 +86,89 @@ def rec_sesh_manager(overall_script_stop_event : Event,
                 print(f"{i} seconds to get set up...")
                 time.sleep(1)
         
-            # Do n_recordings recordings each separated by 10 countdown beeps
-            i=0
-            while not interrupt_session.is_set() and i < n_recordings:
-                i+=1
-                # Do countdown
-                print(f"Starting 10 seconds of exploration...")
-                for _ in range(10):
-                    # Play audio beep 1sec
-                    instruction_queues["audio_player"].put("countdown_beep")
-                    # Wait for audio end
-                    assert (msg := out_queues["audio_player"].get()) == "countdown_beep_done", f"Expected 'countdown_beep_done', but got {msg}"
-                # Wait for beep echo to subside 
-                time.sleep(1)
-                
-                # Define datapoint name, send it to other processes
-                datapoint_name = os.path.join(room_name,f"session_{formatted_session_no}",f"time_{str(int(time.time()))}")
-                
-                print(f"Starting recording n°{i}...")
-                # Signal to start white_blast sound
-                instruction_queues["audio_player"].put("white_blast")
-                # Wait for end of white_blast sound
-                assert (msg := out_queues["audio_player"].get()) == "white_blast_done", f"Expected 'white_blast_done', but got {msg}"
-                
-                # this is here because its also used by the mesh recorder... somehow.
-                # TODO Could make this a lot better. By making another position process, which also sends the first position to the mesh.
-                stop_audio_recording.clear()
-                
-                # Signal to record mesh and image
-                for key in ["mesh_recorder","image_recorder"]:
-                    instruction_queues[key].put("rec_start"+datapoint_name)
+            def run_recordings(num_to_record, start_index):
+                recording_index = start_index
+                for _ in range(num_to_record):
+                    if interrupt_session.is_set():
+                        break
+                    recording_index += 1
+                    # Do countdown
+                    print(f"Starting 10 seconds of exploration...")
+                    for _ in range(10):
+                        # Play audio beep 1sec
+                        instruction_queues["audio_player"].put("countdown_beep")
+                        # Wait for audio end
+                        assert (msg := out_queues["audio_player"].get()) == "countdown_beep_done", f"Expected 'countdown_beep_done', but got {msg}"
+                    # Wait for beep echo to subside 
+                    time.sleep(1)
                     
-                # Signal to start recording audio
-                instruction_queues["audio_recorder"].put("rec_start"+datapoint_name)
-                # Wait for receiver to be opened
-                assert (msg := out_queues["audio_recorder"].get()) == "receiver_opened", f"Expected 'receiver_opened', but got {msg}"
-                # Signal to start ESS sound
-                instruction_queues["audio_player"].put("ESS")
-                # Wait for end of ESS sound
-                assert (msg := out_queues["audio_player"].get()) == "ESS_done", f"Expected 'ESS_done', but got {msg}"
-                time.sleep(0.3)
-                # Stop audio recording
-                stop_audio_recording.set()
-                
-                # Wait for all recording processes to finish
-                for key, queue in out_queues.items():
-                    if key in ["mesh_recorder", "image_recorder", "audio_recorder"]:
-                        assert (msg := queue.get()) == "done", f"Expected 'done', but got {msg}"
-                
-                print(f"Recording n°{i} is done.")
-                
-                # Wait 
-                time.sleep(1)
+                    # Define datapoint name, send it to other processes
+                    datapoint_name = os.path.join(room_name,f"session_{formatted_session_no}",f"time_{str(int(time.time()))}")
+                    
+                    print(f"Starting recording n°{recording_index}...")
+                    # Signal to start white_blast sound
+                    instruction_queues["audio_player"].put("white_blast")
+                    # Wait for end of white_blast sound
+                    assert (msg := out_queues["audio_player"].get()) == "white_blast_done", f"Expected 'white_blast_done', but got {msg}"
+                    
+                    # this is here because its also used by the mesh recorder... somehow.
+                    # TODO Could make this a lot better. By making another position process, which also sends the first position to the mesh.
+                    stop_audio_recording.clear()
+                    
+                    # Signal to record mesh and image
+                    for key in ["mesh_recorder","image_recorder"]:
+                        instruction_queues[key].put("rec_start"+datapoint_name)
+                        
+                    # Signal to start recording audio
+                    instruction_queues["audio_recorder"].put("rec_start"+datapoint_name)
+                    # Wait for receiver to be opened
+                    assert (msg := out_queues["audio_recorder"].get()) == "receiver_opened", f"Expected 'receiver_opened', but got {msg}"
+                    # Signal to start ESS sound
+                    instruction_queues["audio_player"].put("ESS")
+                    # Wait for end of ESS sound
+                    assert (msg := out_queues["audio_player"].get()) == "ESS_done", f"Expected 'ESS_done', but got {msg}"
+                    time.sleep(0.3)
+                    # Stop audio recording
+                    stop_audio_recording.set()
+                    
+                    # Wait for all recording processes to finish
+                    for key, queue in out_queues.items():
+                        if key in ["mesh_recorder", "image_recorder", "audio_recorder"]:
+                            assert (msg := queue.get()) == "done", f"Expected 'done', but got {msg}"
+                    
+                    print(f"Recording n°{recording_index} is done.")
+                    
+                    # Wait 
+                    time.sleep(1)
+                return recording_index
+            
+            # Do n_recordings recordings each separated by 10 countdown beeps
+            recording_index = run_recordings(n_recordings, 0)
+            
+            if prompt_for_extra_recordings and not interrupt_session.is_set():
+                extra_recordings = None
+                while extra_recordings is None:
+                    try:
+                        user_input = input("Initial recordings complete. Enter additional recordings count (0 to skip): ").strip()
+                    except EOFError:
+                        extra_recordings = 0
+                        print("No input available; skipping additional recordings.")
+                        break
+                    if user_input == "":
+                        print("Please enter a number.")
+                        continue
+                    try:
+                        extra_recordings = int(user_input)
+                    except ValueError:
+                        print("Invalid number. Please enter an integer.")
+                        extra_recordings = None
+                        continue
+                    if extra_recordings < 0:
+                        print("Please enter 0 or a positive integer.")
+                        extra_recordings = None
+                if extra_recordings > 0 and not interrupt_session.is_set():
+                    print(f"Continuing recording session for {extra_recordings} more recordings.")
+                    recording_index = run_recordings(extra_recordings, recording_index)
 
             # Recording session is stopped
             stop_audio_recording.clear()
