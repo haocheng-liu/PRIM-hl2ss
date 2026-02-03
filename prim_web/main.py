@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-"""Lightweight mesh dataset viewer with a local HTML frontend.
-
-Features
+"""PRIM Dataset Management web
 --------
 - Starts a small HTTP server and opens a browser UI.
 - Prompts for a dataset root (defaults to viewer/dataset or last-used path).

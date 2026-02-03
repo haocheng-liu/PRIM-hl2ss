@@ -1,3 +1,19 @@
+# Prim dataset based on Liam Kelley's multimodal HoloLens2 dataset capture scripts
+
+This repository extends Liam Kelley's HL2SS-based capture scripts to record the PRIM dataset and serve a lightweight web UI. Below is a minimal quick start (macOS + Python 3.11). Update `--roomname`, `--nrec`, and `--host` for your session.
+
+To record
+```bash
+/opt/homebrew/bin/python3.11 hl2ss-lk/viewer/prim_lk_multimodal_dataset_capture.py --roomname 5D37 --nrec 6 --host 192.168.50.216
+```
+
+To start the web
+```bash
+/opt/homebrew/bin/python3.11 prim_web/main.py
+```
+After completing '--n_rec' recordings, you can choose to view the web UI and decide whether to supplement recordings and the number of supplementary recordings.
+
+
 # Liam Kelley's multimodal HoloLens2 dataset capture scripts
 
 Welcome. This repository is adapted from "jdibenes/hl2ss" and is meant to easily record a dataset of HoloLens2 data.
