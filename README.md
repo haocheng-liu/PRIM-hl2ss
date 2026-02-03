@@ -16,7 +16,7 @@ uv sync
 To record
 ```bash
 cd hl2ss-lk/viewer/
-uv run python hl2ss-lk/viewer/prim_lk_multimodal_dataset_capture.py --roomname 5D37 --nrec 6 --host 192.168.50.216
+uv run python prim_lk_multimodal_dataset_capture.py --roomname 5D37 --nrec 6 --host 192.168.50.216
 ```
 
 To start the web
