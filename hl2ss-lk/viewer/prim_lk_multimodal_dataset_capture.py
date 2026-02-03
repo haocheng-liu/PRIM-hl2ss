@@ -5,6 +5,8 @@
 from pynput import keyboard
 import multiprocessing as mp
 import argparse
+from queue import Empty
+import threading
 
 import hl2ss
 import hl2ss_lnm
@@ -128,6 +130,7 @@ if __name__ == '__main__':
     out_queues={}
     for name in names:
         out_queues[name] = mp.Queue()
+    extra_recordings_queue = mp.Queue()
         
     # Manager process
     rec_session_manager_process = mp.Process(target=lk_hl2ss.rec_sesh_manager,
@@ -139,7 +142,8 @@ if __name__ == '__main__':
                                         out_queues,
                                         pargs.nrec,
                                         pargs.roomname,
-                                        True))
+                                        True,
+                                        extra_recordings_queue))
     
     # Mesh process
     mesh_recorder_process = mp.Process(target=lk_hl2ss.mesh_recorder,
@@ -190,6 +194,41 @@ if __name__ == '__main__':
     # Check all inits
     for key, queue in out_queues.items():
         assert (msg := queue.get()) == "started", f"Expected 'started' for {key}, but got {msg}"
+
+    def prompt_extra_recordings():
+        while True:
+            try:
+                user_input = input("Initial recordings complete. Enter additional recordings count (0 to skip): ").strip()
+            except EOFError:
+                print("No input available; skipping additional recordings.")
+                return 0
+            if user_input == "":
+                print("Please enter a number.")
+                continue
+            try:
+                extra_recordings = int(user_input)
+            except ValueError:
+                print("Invalid number. Please enter an integer.")
+                continue
+            if extra_recordings < 0:
+                print("Please enter 0 or a positive integer.")
+                continue
+            return extra_recordings
+
+    def manager_prompt_listener():
+        while not overall_script_stop_event.is_set():
+            try:
+                msg = out_queues["manager"].get(timeout=0.1)
+            except Empty:
+                continue
+            if msg == "request_extra_recordings":
+                extra_recordings = prompt_extra_recordings()
+                extra_recordings_queue.put(extra_recordings)
+            elif msg != "started":
+                pass
+
+    prompt_listener_thread = threading.Thread(target=manager_prompt_listener, daemon=True)
+    prompt_listener_thread.start()
 
     #------------------------------------------------------------------------------
     # Start / stop  via Keyboard Manager ------------------------------------------

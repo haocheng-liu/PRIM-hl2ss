@@ -347,20 +347,39 @@ def _resolve_dataset_path(rel_path: str) -> Path:
 
 def _collect_session_meshes(session_dir: Path) -> List[Path]:
     """Collect mesh.obj paths under a session (excluding aggregate outputs)."""
-    mesh_paths: List[Path] = []
     if not session_dir.exists():
-        return mesh_paths
-    for time_dir in sorted(p for p in session_dir.iterdir() if p.is_dir()):
+        return []
+
+    def _is_under_aggregate_output(obj_path: Path) -> bool:
+        for parent in obj_path.parents:
+            if parent == session_dir:
+                break
+            if _is_aggregate_output_dir(session_dir, parent.name):
+                return True
+        return False
+
+    def _time_dir_for_mesh(obj_path: Path) -> Path:
+        if obj_path.parent.name == "mesh":
+            return obj_path.parent.parent
+        return obj_path.parent
+
+    chosen: Dict[Path, Path] = {}
+    for obj_path in session_dir.rglob("mesh.obj"):
+        if not obj_path.is_file():
+            continue
+        if _is_under_aggregate_output(obj_path):
+            continue
+        time_dir = _time_dir_for_mesh(obj_path)
         if _is_aggregate_output_dir(session_dir, time_dir.name):
             continue
-        candidate = time_dir / "mesh" / "mesh.obj"
-        if candidate.exists():
-            mesh_paths.append(candidate)
+        existing = chosen.get(time_dir)
+        if existing is None:
+            chosen[time_dir] = obj_path
             continue
-        candidate = time_dir / "mesh.obj"
-        if candidate.exists():
-            mesh_paths.append(candidate)
-    return mesh_paths
+        if existing.parent.name != "mesh" and obj_path.parent.name == "mesh":
+            chosen[time_dir] = obj_path
+
+    return [chosen[time_dir] for time_dir in sorted(chosen.keys(), key=lambda p: p.name)]
 
 
 def _count_obj_components(obj_path: Path) -> Tuple[int, int, int]:

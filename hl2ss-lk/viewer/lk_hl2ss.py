@@ -1,5 +1,6 @@
 from pynput import keyboard
 from queue import Empty
+from typing import Optional
 import traceback
 
 import os
@@ -41,7 +42,8 @@ def rec_sesh_manager(overall_script_stop_event : Event,
         out_queues : dict[str,mp.Queue],
         n_recordings : int,
         room_name : str,
-        prompt_for_extra_recordings : bool = False):
+        prompt_for_extra_recordings : bool = False,
+        extra_recordings_queue : Optional[mp.Queue] = None):
     '''
     Main logic behind a recording session
     '''
@@ -58,6 +60,61 @@ def rec_sesh_manager(overall_script_stop_event : Event,
         formatted_session_no = f"{session_no:03}"
     
     while not overall_script_stop_event.is_set():
+        def run_source_pov():
+            if session_no >= 0:
+                print(f"Getting src pos for recording session n°{formatted_session_no}.")
+                
+                session_running_flag.set()
+                time.sleep(0.5)
+                
+                # Define datapoint name, send it to other processes
+                datapoint_name = os.path.join(room_name,f"session_{formatted_session_no}",f"source_pov")
+                
+                print(f"Getting source pov for session {formatted_session_no}.")
+                
+                # Signal to start source_get_ready_warning sound
+                instruction_queues["audio_player"].put("src_pov_warning")
+                # Wait for end of source_get_ready_warning sound
+                assert (msg := out_queues["audio_player"].get()) == "src_pov_warning_done", f"Expected 'src_pov_warning_done', but got {msg}"
+                
+                for _ in range(5):
+                    print("Waiting...")
+                    time.sleep(1)
+                print("Recording!")
+                
+                # Signal to record mesh and image
+                for key in ["mesh_recorder","image_recorder"]:
+                    instruction_queues[key].put("rec_start"+datapoint_name)
+                    
+                # Signal to start white_blast sound
+                instruction_queues["audio_player"].put("white_blast")
+                # Wait for end of white_blast sound
+                assert (msg := out_queues["audio_player"].get()) == "white_blast_done", f"Expected 'white_blast_done', but got {msg}"
+                time.sleep(0.5)
+                # Signal to start recording audio
+                stop_audio_recording.clear()
+                instruction_queues["audio_recorder"].put("rec_start"+datapoint_name)
+                # Wait for receiver to be opened
+                assert (msg := out_queues["audio_recorder"].get()) == "receiver_opened", f"Expected 'receiver_opened', but got {msg}"
+                # Signal to start ESS sound
+                instruction_queues["audio_player"].put("ESS")
+                # Wait for end of ESS sound
+                assert (msg := out_queues["audio_player"].get()) == "ESS_done", f"Expected 'ESS_done', but got {msg}"
+                time.sleep(0.3)
+                # Stop audio recording
+                stop_audio_recording.set()
+                    
+                # Wait for all recording processes to finish
+                for key, queue in out_queues.items():
+                    if key in ["mesh_recorder", "image_recorder", "audio_recorder"]:
+                        assert (msg := queue.get()) == "done", f"Expected 'done', but got {msg}"
+                
+                print(f"Got source pov for session {formatted_session_no}.")
+                
+                session_running_flag.clear()
+            else:
+                print("No sessions to get src pov for. Skipping.")
+
         # Intro message
         print("\nPlease check the following:")
         print(f"    1. Current room : {room_name}. (see --roomname argument)")
@@ -147,25 +204,42 @@ def rec_sesh_manager(overall_script_stop_event : Event,
             
             if prompt_for_extra_recordings and not interrupt_session.is_set():
                 extra_recordings = None
-                while extra_recordings is None:
-                    try:
-                        user_input = input("Initial recordings complete. Enter additional recordings count (0 to skip): ").strip()
-                    except EOFError:
+                if extra_recordings_queue is not None:
+                    out_queues["manager"].put("request_extra_recordings")
+                    while extra_recordings is None and not interrupt_session.is_set():
+                        try:
+                            msg = extra_recordings_queue.get(timeout=0.1)
+                        except Empty:
+                            continue
+                        if isinstance(msg, int):
+                            extra_recordings = msg
+                        else:
+                            try:
+                                extra_recordings = int(msg)
+                            except (TypeError, ValueError):
+                                extra_recordings = None
+                    if interrupt_session.is_set():
                         extra_recordings = 0
-                        print("No input available; skipping additional recordings.")
-                        break
-                    if user_input == "":
-                        print("Please enter a number.")
-                        continue
-                    try:
-                        extra_recordings = int(user_input)
-                    except ValueError:
-                        print("Invalid number. Please enter an integer.")
-                        extra_recordings = None
-                        continue
-                    if extra_recordings < 0:
-                        print("Please enter 0 or a positive integer.")
-                        extra_recordings = None
+                else:
+                    while extra_recordings is None:
+                        try:
+                            user_input = input("Initial recordings complete. Enter additional recordings count (0 to skip): ").strip()
+                        except EOFError:
+                            extra_recordings = 0
+                            print("No input available; skipping additional recordings.")
+                            break
+                        if user_input == "":
+                            print("Please enter a number.")
+                            continue
+                        try:
+                            extra_recordings = int(user_input)
+                        except ValueError:
+                            print("Invalid number. Please enter an integer.")
+                            extra_recordings = None
+                            continue
+                        if extra_recordings < 0:
+                            print("Please enter 0 or a positive integer.")
+                            extra_recordings = None
                 if extra_recordings > 0 and not interrupt_session.is_set():
                     print(f"Continuing recording session for {extra_recordings} more recordings.")
                     recording_index = run_recordings(extra_recordings, recording_index)
@@ -180,63 +254,11 @@ def rec_sesh_manager(overall_script_stop_event : Event,
                 interrupt_session.clear()
                 print("Recording session interrupted.")
             else:
-                instruction_queues["manager"].put("get_src_pov")
                 print("Recording session stopped. Moving on to getting src position.")
+                run_source_pov()
         
         elif msg == "get_src_pov":
-            if session_no >= 0:
-                print(f"Getting src pos for recording session n°{formatted_session_no}.")
-                
-                session_running_flag.set()
-                time.sleep(0.5)
-                
-                # Define datapoint name, send it to other processes
-                datapoint_name = os.path.join(room_name,f"session_{formatted_session_no}",f"source_pov")
-                
-                print(f"Getting source pov for session {formatted_session_no}.")
-                
-                # Signal to start source_get_ready_warning sound
-                instruction_queues["audio_player"].put("src_pov_warning")
-                # Wait for end of source_get_ready_warning sound
-                assert (msg := out_queues["audio_player"].get()) == "src_pov_warning_done", f"Expected 'src_pov_warning_done', but got {msg}"
-                
-                for _ in range(5):
-                    print("Waiting...")
-                    time.sleep(1)
-                print("Recording!")
-                
-                # Signal to record mesh and image
-                for key in ["mesh_recorder","image_recorder"]:
-                    instruction_queues[key].put("rec_start"+datapoint_name)
-                    
-                # Signal to start white_blast sound
-                instruction_queues["audio_player"].put("white_blast")
-                # Wait for end of white_blast sound
-                assert (msg := out_queues["audio_player"].get()) == "white_blast_done", f"Expected 'white_blast_done', but got {msg}"
-                time.sleep(0.5)
-                # Signal to start recording audio
-                stop_audio_recording.clear()
-                instruction_queues["audio_recorder"].put("rec_start"+datapoint_name)
-                # Wait for receiver to be opened
-                assert (msg := out_queues["audio_recorder"].get()) == "receiver_opened", f"Expected 'receiver_opened', but got {msg}"
-                # Signal to start ESS sound
-                instruction_queues["audio_player"].put("ESS")
-                # Wait for end of ESS sound
-                assert (msg := out_queues["audio_player"].get()) == "ESS_done", f"Expected 'ESS_done', but got {msg}"
-                time.sleep(0.3)
-                # Stop audio recording
-                stop_audio_recording.set()
-                    
-                # Wait for all recording processes to finish
-                for key, queue in out_queues.items():
-                    if key in ["mesh_recorder", "image_recorder", "audio_recorder"]:
-                        assert (msg := queue.get()) == "done", f"Expected 'done', but got {msg}"
-                
-                print(f"Got source pov for session {formatted_session_no}.")
-                
-                session_running_flag.clear()
-            else:
-                print("No sessions to get src pov for. Skipping.")
+            run_source_pov()
         
         elif msg == "stop":
             break
