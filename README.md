@@ -2,14 +2,25 @@
 
 This repository extends Liam Kelley's HL2SS-based capture scripts to record the PRIM dataset and serve a lightweight web UI. Below is a minimal quick start (macOS + Python 3.11). Update `--roomname`, `--nrec`, and `--host` for your session.
 
+Running with uv:
+```bash
+# install and uv and libomp(to support open3d)
+brew install uv libomp
+```
+
+```bash
+# uv sync in the project folder that includes pyproject.toml and uv.lock
+uv sync
+```
+
 To record
 ```bash
-/opt/homebrew/bin/python3.11 hl2ss-lk/viewer/prim_lk_multimodal_dataset_capture.py --roomname 5D37 --nrec 6 --host 192.168.50.216
+uv run python hl2ss-lk/viewer/prim_lk_multimodal_dataset_capture.py --roomname 5D37 --nrec 6 --host 192.168.50.216
 ```
 
 To start the web
 ```bash
-/opt/homebrew/bin/python3.11 prim_web/main.py
+uv run python prim_web/main.py
 ```
 After completing '--n_rec' recordings, you can choose to view the web UI and decide whether to supplement recordings and the number of supplementary recordings.
 
